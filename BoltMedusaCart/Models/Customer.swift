@@ -51,8 +51,8 @@ struct Customer: Codable, Identifiable {
         billingAddressId = try container.decodeIfPresent(String.self, forKey: .billingAddressId)
         phone = try container.decodeIfPresent(String.self, forKey: .phone)
         hasAccount = try container.decodeIfPresent(Bool.self, forKey: .hasAccount) ?? false
-        createdAt = try container.decode(String.self, forKey: .createdAt)
-        updatedAt = try container.decode(String.self, forKey: .updatedAt)
+        createdAt = try container.decodeIfPresent(String.self, forKey: .createdAt) ?? ""
+        updatedAt = try container.decodeIfPresent(String.self, forKey: .updatedAt) ?? ""
         deletedAt = try container.decodeIfPresent(String.self, forKey: .deletedAt)
         
         // Handle metadata
@@ -64,69 +64,6 @@ struct Customer: Codable, Identifiable {
             }
         } else {
             metadata = nil
-        }
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        
-        try container.encode(id, forKey: .id)
-        try container.encode(email, forKey: .email)
-        try container.encodeIfPresent(defaultBillingAddressId, forKey: .defaultBillingAddressId)
-        try container.encodeIfPresent(defaultShippingAddressId, forKey: .defaultShippingAddressId)
-        try container.encodeIfPresent(companyName, forKey: .companyName)
-        try container.encodeIfPresent(firstName, forKey: .firstName)
-        try container.encodeIfPresent(lastName, forKey: .lastName)
-        try container.encodeIfPresent(billingAddressId, forKey: .billingAddressId)
-        try container.encodeIfPresent(phone, forKey: .phone)
-        try container.encode(hasAccount, forKey: .hasAccount)
-        try container.encode(createdAt, forKey: .createdAt)
-        try container.encode(updatedAt, forKey: .updatedAt)
-        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
-    }
-}
-
-// Helper struct for flexible JSON decoding
-struct AnyCodable: Codable {
-    let value: Any
-    
-    init(_ value: Any) {
-        self.value = value
-    }
-    
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        
-        if let bool = try? container.decode(Bool.self) {
-            value = bool
-        } else if let int = try? container.decode(Int.self) {
-            value = int
-        } else if let double = try? container.decode(Double.self) {
-            value = double
-        } else if let string = try? container.decode(String.self) {
-            value = string
-        } else if container.decodeNil() {
-            value = NSNull()
-        } else {
-            throw DecodingError.typeMismatch(AnyCodable.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unsupported type"))
-        }
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        
-        if let bool = value as? Bool {
-            try container.encode(bool)
-        } else if let int = value as? Int {
-            try container.encode(int)
-        } else if let double = value as? Double {
-            try container.encode(double)
-        } else if let string = value as? String {
-            try container.encode(string)
-        } else if value is NSNull {
-            try container.encodeNil()
-        } else {
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "Unsupported type"))
         }
     }
 }

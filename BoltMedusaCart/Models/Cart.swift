@@ -92,8 +92,8 @@ struct Cart: Codable, Identifiable {
         id = try container.decode(String.self, forKey: .id)
         currencyCode = try container.decode(String.self, forKey: .currencyCode)
         regionId = try container.decode(String.self, forKey: .regionId)
-        createdAt = try container.decode(String.self, forKey: .createdAt)
-        updatedAt = try container.decode(String.self, forKey: .updatedAt)
+        createdAt = try container.decodeIfPresent(String.self, forKey: .createdAt) ?? ""
+        updatedAt = try container.decodeIfPresent(String.self, forKey: .updatedAt) ?? ""
         
         // Optional fields
         email = try container.decodeIfPresent(String.self, forKey: .email)
@@ -125,7 +125,7 @@ struct Cart: Codable, Identifiable {
         
         // Related entities
         items = try container.decodeIfPresent([CartLineItem].self, forKey: .items)
-        region = try container.decodeIfPresent(CartRegion.self, forKey: .region)
+        region = try container.decodeIfPresent(CartRegion].self, forKey: .region)
         customer = try container.decodeIfPresent(CartCustomer.self, forKey: .customer)
         shippingAddress = try container.decodeIfPresent(CartAddress.self, forKey: .shippingAddress)
         billingAddress = try container.decodeIfPresent(CartAddress.self, forKey: .billingAddress)
@@ -143,51 +143,6 @@ struct Cart: Codable, Identifiable {
         } else {
             metadata = nil
         }
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        
-        try container.encode(id, forKey: .id)
-        try container.encode(currencyCode, forKey: .currencyCode)
-        try container.encode(regionId, forKey: .regionId)
-        try container.encode(createdAt, forKey: .createdAt)
-        try container.encode(updatedAt, forKey: .updatedAt)
-        
-        try container.encodeIfPresent(email, forKey: .email)
-        try container.encodeIfPresent(customerId, forKey: .customerId)
-        try container.encodeIfPresent(salesChannelId, forKey: .salesChannelId)
-        try container.encodeIfPresent(completedAt, forKey: .completedAt)
-        
-        try container.encode(total, forKey: .total)
-        try container.encode(subtotal, forKey: .subtotal)
-        try container.encode(taxTotal, forKey: .taxTotal)
-        try container.encode(discountTotal, forKey: .discountTotal)
-        try container.encode(discountSubtotal, forKey: .discountSubtotal)
-        try container.encode(discountTaxTotal, forKey: .discountTaxTotal)
-        try container.encode(originalTotal, forKey: .originalTotal)
-        try container.encode(originalTaxTotal, forKey: .originalTaxTotal)
-        try container.encode(itemTotal, forKey: .itemTotal)
-        try container.encode(itemSubtotal, forKey: .itemSubtotal)
-        try container.encode(itemTaxTotal, forKey: .itemTaxTotal)
-        try container.encode(originalItemTotal, forKey: .originalItemTotal)
-        try container.encode(originalItemSubtotal, forKey: .originalItemSubtotal)
-        try container.encode(originalItemTaxTotal, forKey: .originalItemTaxTotal)
-        try container.encode(shippingTotal, forKey: .shippingTotal)
-        try container.encode(shippingSubtotal, forKey: .shippingSubtotal)
-        try container.encode(shippingTaxTotal, forKey: .shippingTaxTotal)
-        try container.encode(originalShippingTaxTotal, forKey: .originalShippingTaxTotal)
-        try container.encode(originalShippingSubtotal, forKey: .originalShippingSubtotal)
-        try container.encode(originalShippingTotal, forKey: .originalShippingTotal)
-        
-        try container.encodeIfPresent(items, forKey: .items)
-        try container.encodeIfPresent(region, forKey: .region)
-        try container.encodeIfPresent(customer, forKey: .customer)
-        try container.encodeIfPresent(shippingAddress, forKey: .shippingAddress)
-        try container.encodeIfPresent(billingAddress, forKey: .billingAddress)
-        try container.encodeIfPresent(shippingMethods, forKey: .shippingMethods)
-        try container.encodeIfPresent(paymentSessions, forKey: .paymentSessions)
-        try container.encodeIfPresent(promotions, forKey: .promotions)
     }
 }
 
@@ -288,8 +243,8 @@ struct CartLineItem: Codable, Identifiable {
         isTaxInclusive = try container.decodeIfPresent(Bool.self, forKey: .isTaxInclusive) ?? false
         unitPrice = try container.decode(Int.self, forKey: .unitPrice)
         quantity = try container.decode(Int.self, forKey: .quantity)
-        createdAt = try container.decode(String.self, forKey: .createdAt)
-        updatedAt = try container.decode(String.self, forKey: .updatedAt)
+        createdAt = try container.decodeIfPresent(String.self, forKey: .createdAt) ?? ""
+        updatedAt = try container.decodeIfPresent(String.self, forKey: .updatedAt) ?? ""
         deletedAt = try container.decodeIfPresent(String.self, forKey: .deletedAt)
         
         // Calculated fields with defaults
@@ -316,48 +271,6 @@ struct CartLineItem: Codable, Identifiable {
         } else {
             metadata = nil
         }
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        
-        try container.encode(id, forKey: .id)
-        try container.encode(cartId, forKey: .cartId)
-        try container.encode(title, forKey: .title)
-        try container.encodeIfPresent(subtitle, forKey: .subtitle)
-        try container.encodeIfPresent(thumbnail, forKey: .thumbnail)
-        try container.encodeIfPresent(variantId, forKey: .variantId)
-        try container.encodeIfPresent(productId, forKey: .productId)
-        try container.encodeIfPresent(productTitle, forKey: .productTitle)
-        try container.encodeIfPresent(productDescription, forKey: .productDescription)
-        try container.encodeIfPresent(productSubtitle, forKey: .productSubtitle)
-        try container.encodeIfPresent(productType, forKey: .productType)
-        try container.encodeIfPresent(productCollection, forKey: .productCollection)
-        try container.encodeIfPresent(productHandle, forKey: .productHandle)
-        try container.encodeIfPresent(variantSku, forKey: .variantSku)
-        try container.encodeIfPresent(variantBarcode, forKey: .variantBarcode)
-        try container.encodeIfPresent(variantTitle, forKey: .variantTitle)
-        try container.encodeIfPresent(variantOptionValues, forKey: .variantOptionValues)
-        try container.encode(requiresShipping, forKey: .requiresShipping)
-        try container.encode(isDiscountable, forKey: .isDiscountable)
-        try container.encode(isTaxInclusive, forKey: .isTaxInclusive)
-        try container.encode(unitPrice, forKey: .unitPrice)
-        try container.encode(quantity, forKey: .quantity)
-        try container.encode(createdAt, forKey: .createdAt)
-        try container.encode(updatedAt, forKey: .updatedAt)
-        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
-        
-        try container.encode(total, forKey: .total)
-        try container.encode(subtotal, forKey: .subtotal)
-        try container.encode(taxTotal, forKey: .taxTotal)
-        try container.encode(discountTotal, forKey: .discountTotal)
-        try container.encode(originalTotal, forKey: .originalTotal)
-        try container.encode(originalTaxTotal, forKey: .originalTaxTotal)
-        
-        try container.encodeIfPresent(product, forKey: .product)
-        try container.encodeIfPresent(variant, forKey: .variant)
-        try container.encodeIfPresent(adjustments, forKey: .adjustments)
-        try container.encodeIfPresent(taxLines, forKey: .taxLines)
     }
 }
 
@@ -469,22 +382,6 @@ struct CartAddress: Codable, Identifiable {
             metadata = nil
         }
     }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        
-        try container.encodeIfPresent(id, forKey: .id)
-        try container.encodeIfPresent(firstName, forKey: .firstName)
-        try container.encodeIfPresent(lastName, forKey: .lastName)
-        try container.encodeIfPresent(company, forKey: .company)
-        try container.encode(address1, forKey: .address1)
-        try container.encodeIfPresent(address2, forKey: .address2)
-        try container.encode(city, forKey: .city)
-        try container.encode(countryCode, forKey: .countryCode)
-        try container.encodeIfPresent(province, forKey: .province)
-        try container.encode(postalCode, forKey: .postalCode)
-        try container.encodeIfPresent(phone, forKey: .phone)
-    }
 }
 
 struct CartShippingMethod: Codable, Identifiable {
@@ -521,16 +418,6 @@ struct CartShippingMethod: Codable, Identifiable {
             metadata = nil
         }
     }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        
-        try container.encode(id, forKey: .id)
-        try container.encode(name, forKey: .name)
-        try container.encode(amount, forKey: .amount)
-        try container.encode(isReturn, forKey: .isReturn)
-        try container.encode(adminOnly, forKey: .adminOnly)
-    }
 }
 
 struct CartPaymentSession: Codable, Identifiable {
@@ -564,15 +451,6 @@ struct CartPaymentSession: Codable, Identifiable {
             data = nil
         }
     }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        
-        try container.encode(id, forKey: .id)
-        try container.encode(providerId, forKey: .providerId)
-        try container.encode(amount, forKey: .amount)
-        try container.encode(status, forKey: .status)
-    }
 }
 
 struct CartPromotion: Codable, Identifiable {
@@ -605,15 +483,6 @@ struct CartPromotion: Codable, Identifiable {
         } else {
             metadata = nil
         }
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        
-        try container.encode(id, forKey: .id)
-        try container.encode(code, forKey: .code)
-        try container.encode(type, forKey: .type)
-        try container.encode(isAutomatic, forKey: .isAutomatic)
     }
 }
 
@@ -664,51 +533,6 @@ struct CartTaxLine: Codable, Identifiable {
     
     enum CodingKeys: String, CodingKey {
         case id, rate, name, code
-    }
-}
-
-// Helper struct for flexible JSON decoding
-struct AnyCodable: Codable {
-    let value: Any
-    
-    init(_ value: Any) {
-        self.value = value
-    }
-    
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        
-        if let bool = try? container.decode(Bool.self) {
-            value = bool
-        } else if let int = try? container.decode(Int.self) {
-            value = int
-        } else if let double = try? container.decode(Double.self) {
-            value = double
-        } else if let string = try? container.decode(String.self) {
-            value = string
-        } else if container.decodeNil() {
-            value = NSNull()
-        } else {
-            throw DecodingError.typeMismatch(AnyCodable.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unsupported type"))
-        }
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        
-        if let bool = value as? Bool {
-            try container.encode(bool)
-        } else if let int = value as? Int {
-            try container.encode(int)
-        } else if let double = value as? Double {
-            try container.encode(double)
-        } else if let string = value as? String {
-            try container.encode(string)
-        } else if value is NSNull {
-            try container.encodeNil()
-        } else {
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "Unsupported type"))
-        }
     }
 }
 

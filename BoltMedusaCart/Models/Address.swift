@@ -65,8 +65,8 @@ struct Address: Codable, Identifiable {
         province = try container.decodeIfPresent(String.self, forKey: .province)
         postalCode = try container.decode(String.self, forKey: .postalCode)
         phone = try container.decodeIfPresent(String.self, forKey: .phone)
-        createdAt = try container.decode(String.self, forKey: .createdAt)
-        updatedAt = try container.decode(String.self, forKey: .updatedAt)
+        createdAt = try container.decodeIfPresent(String.self, forKey: .createdAt) ?? ""
+        updatedAt = try container.decodeIfPresent(String.self, forKey: .updatedAt) ?? ""
         deletedAt = try container.decodeIfPresent(String.self, forKey: .deletedAt)
         
         // Handle metadata
@@ -78,74 +78,6 @@ struct Address: Codable, Identifiable {
             }
         } else {
             metadata = nil
-        }
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        
-        try container.encode(id, forKey: .id)
-        try container.encodeIfPresent(addressName, forKey: .addressName)
-        try container.encode(isDefaultShipping, forKey: .isDefaultShipping)
-        try container.encode(isDefaultBilling, forKey: .isDefaultBilling)
-        try container.encodeIfPresent(customerId, forKey: .customerId)
-        try container.encodeIfPresent(company, forKey: .company)
-        try container.encodeIfPresent(firstName, forKey: .firstName)
-        try container.encodeIfPresent(lastName, forKey: .lastName)
-        try container.encode(address1, forKey: .address1)
-        try container.encodeIfPresent(address2, forKey: .address2)
-        try container.encode(city, forKey: .city)
-        try container.encode(countryCode, forKey: .countryCode)
-        try container.encodeIfPresent(province, forKey: .province)
-        try container.encode(postalCode, forKey: .postalCode)
-        try container.encodeIfPresent(phone, forKey: .phone)
-        try container.encode(createdAt, forKey: .createdAt)
-        try container.encode(updatedAt, forKey: .updatedAt)
-        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
-    }
-}
-
-// Helper struct for flexible JSON decoding
-struct AnyCodable: Codable {
-    let value: Any
-    
-    init(_ value: Any) {
-        self.value = value
-    }
-    
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        
-        if let bool = try? container.decode(Bool.self) {
-            value = bool
-        } else if let int = try? container.decode(Int.self) {
-            value = int
-        } else if let double = try? container.decode(Double.self) {
-            value = double
-        } else if let string = try? container.decode(String.self) {
-            value = string
-        } else if container.decodeNil() {
-            value = NSNull()
-        } else {
-            throw DecodingError.typeMismatch(AnyCodable.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unsupported type"))
-        }
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        
-        if let bool = value as? Bool {
-            try container.encode(bool)
-        } else if let int = value as? Int {
-            try container.encode(int)
-        } else if let double = value as? Double {
-            try container.encode(double)
-        } else if let string = value as? String {
-            try container.encode(string)
-        } else if value is NSNull {
-            try container.encodeNil()
-        } else {
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "Unsupported type"))
         }
     }
 }
