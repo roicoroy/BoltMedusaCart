@@ -80,6 +80,35 @@ struct Address: Codable, Identifiable {
             metadata = nil
         }
     }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encodeIfPresent(addressName, forKey: .addressName)
+        try container.encode(isDefaultShipping, forKey: .isDefaultShipping)
+        try container.encode(isDefaultBilling, forKey: .isDefaultBilling)
+        try container.encodeIfPresent(customerId, forKey: .customerId)
+        try container.encodeIfPresent(company, forKey: .company)
+        try container.encodeIfPresent(firstName, forKey: .firstName)
+        try container.encodeIfPresent(lastName, forKey: .lastName)
+        try container.encode(address1, forKey: .address1)
+        try container.encodeIfPresent(address2, forKey: .address2)
+        try container.encode(city, forKey: .city)
+        try container.encode(countryCode, forKey: .countryCode)
+        try container.encodeIfPresent(province, forKey: .province)
+        try container.encode(postalCode, forKey: .postalCode)
+        try container.encodeIfPresent(phone, forKey: .phone)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
+        
+        // Handle metadata encoding
+        if let metadata = metadata {
+            let encodableMetadata = metadata.mapValues { AnyCodable($0) }
+            try container.encode(encodableMetadata, forKey: .metadata)
+        }
+    }
 }
 
 // MARK: - Address Request Models

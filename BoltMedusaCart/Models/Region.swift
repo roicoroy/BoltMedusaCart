@@ -69,6 +69,31 @@ struct Region: Codable, Identifiable {
             metadata = nil
         }
     }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(currencyCode, forKey: .currencyCode)
+        try container.encode(automaticTaxes, forKey: .automaticTaxes)
+        try container.encode(giftCardsTaxable, forKey: .giftCardsTaxable)
+        try container.encode(taxInclusivePricing, forKey: .taxInclusivePricing)
+        try container.encodeIfPresent(taxRate, forKey: .taxRate)
+        try container.encodeIfPresent(taxCode, forKey: .taxCode)
+        try container.encodeIfPresent(countries, forKey: .countries)
+        try container.encodeIfPresent(paymentProviders, forKey: .paymentProviders)
+        try container.encodeIfPresent(fulfillmentProviders, forKey: .fulfillmentProviders)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
+        
+        // Handle metadata encoding
+        if let metadata = metadata {
+            let encodableMetadata = metadata.mapValues { AnyCodable($0) }
+            try container.encode(encodableMetadata, forKey: .metadata)
+        }
+    }
 }
 
 struct Country: Codable, Identifiable {
@@ -119,6 +144,26 @@ struct Country: Codable, Identifiable {
             }
         } else {
             metadata = nil
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(iso2, forKey: .iso2)
+        try container.encode(iso3, forKey: .iso3)
+        try container.encode(numCode, forKey: .numCode)
+        try container.encode(name, forKey: .name)
+        try container.encode(displayName, forKey: .displayName)
+        try container.encodeIfPresent(regionId, forKey: .regionId)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
+        
+        // Handle metadata encoding
+        if let metadata = metadata {
+            let encodableMetadata = metadata.mapValues { AnyCodable($0) }
+            try container.encode(encodableMetadata, forKey: .metadata)
         }
     }
 }
