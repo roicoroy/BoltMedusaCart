@@ -66,6 +66,30 @@ struct Customer: Codable, Identifiable {
             metadata = nil
         }
     }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(email, forKey: .email)
+        try container.encodeIfPresent(defaultBillingAddressId, forKey: .defaultBillingAddressId)
+        try container.encodeIfPresent(defaultShippingAddressId, forKey: .defaultShippingAddressId)
+        try container.encodeIfPresent(companyName, forKey: .companyName)
+        try container.encodeIfPresent(firstName, forKey: .firstName)
+        try container.encodeIfPresent(lastName, forKey: .lastName)
+        try container.encodeIfPresent(billingAddressId, forKey: .billingAddressId)
+        try container.encodeIfPresent(phone, forKey: .phone)
+        try container.encode(hasAccount, forKey: .hasAccount)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
+        
+        // Handle metadata encoding
+        if let metadata = metadata {
+            let encodableMetadata = metadata.mapValues { AnyCodable($0) }
+            try container.encode(encodableMetadata, forKey: .metadata)
+        }
+    }
 }
 
 // MARK: - Authentication Models

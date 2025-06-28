@@ -106,6 +106,47 @@ struct Product: Codable, Identifiable {
         }
     }
     
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(title, forKey: .title)
+        try container.encodeIfPresent(subtitle, forKey: .subtitle)
+        try container.encodeIfPresent(description, forKey: .description)
+        try container.encodeIfPresent(handle, forKey: .handle)
+        try container.encode(isGiftcard, forKey: .isGiftcard)
+        try container.encode(status, forKey: .status)
+        try container.encodeIfPresent(images, forKey: .images)
+        try container.encodeIfPresent(thumbnail, forKey: .thumbnail)
+        try container.encodeIfPresent(options, forKey: .options)
+        try container.encodeIfPresent(variants, forKey: .variants)
+        try container.encodeIfPresent(collection, forKey: .collection)
+        try container.encodeIfPresent(collectionId, forKey: .collectionId)
+        try container.encodeIfPresent(type, forKey: .type)
+        try container.encodeIfPresent(typeId, forKey: .typeId)
+        try container.encodeIfPresent(categories, forKey: .categories)
+        try container.encodeIfPresent(tags, forKey: .tags)
+        try container.encodeIfPresent(weight, forKey: .weight)
+        try container.encodeIfPresent(length, forKey: .length)
+        try container.encodeIfPresent(height, forKey: .height)
+        try container.encodeIfPresent(width, forKey: .width)
+        try container.encodeIfPresent(hsCode, forKey: .hsCode)
+        try container.encodeIfPresent(originCountry, forKey: .originCountry)
+        try container.encodeIfPresent(midCode, forKey: .midCode)
+        try container.encodeIfPresent(material, forKey: .material)
+        try container.encode(discountable, forKey: .discountable)
+        try container.encodeIfPresent(externalId, forKey: .externalId)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
+        
+        // Handle metadata encoding
+        if let metadata = metadata {
+            let encodableMetadata = metadata.mapValues { AnyCodable($0) }
+            try container.encode(encodableMetadata, forKey: .metadata)
+        }
+    }
+    
     private static func decodeFlexibleInt(from container: KeyedDecodingContainer<CodingKeys>, forKey key: CodingKeys) -> Int? {
         if let intValue = try? container.decodeIfPresent(Int.self, forKey: key) {
             return intValue
@@ -159,6 +200,22 @@ struct ProductImage: Codable, Identifiable {
             metadata = nil
         }
     }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(url, forKey: .url)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
+        
+        // Handle metadata encoding
+        if let metadata = metadata {
+            let encodableMetadata = metadata.mapValues { AnyCodable($0) }
+            try container.encode(encodableMetadata, forKey: .metadata)
+        }
+    }
 }
 
 struct ProductOption: Codable, Identifiable {
@@ -201,6 +258,24 @@ struct ProductOption: Codable, Identifiable {
             metadata = nil
         }
     }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(title, forKey: .title)
+        try container.encodeIfPresent(values, forKey: .values)
+        try container.encodeIfPresent(productId, forKey: .productId)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
+        
+        // Handle metadata encoding
+        if let metadata = metadata {
+            let encodableMetadata = metadata.mapValues { AnyCodable($0) }
+            try container.encode(encodableMetadata, forKey: .metadata)
+        }
+    }
 }
 
 struct ProductOptionValue: Codable, Identifiable {
@@ -239,6 +314,23 @@ struct ProductOptionValue: Codable, Identifiable {
             }
         } else {
             metadata = nil
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(value, forKey: .value)
+        try container.encodeIfPresent(optionId, forKey: .optionId)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
+        
+        // Handle metadata encoding
+        if let metadata = metadata {
+            let encodableMetadata = metadata.mapValues { AnyCodable($0) }
+            try container.encode(encodableMetadata, forKey: .metadata)
         }
     }
 }
@@ -323,6 +415,39 @@ struct ProductVariant: Codable, Identifiable {
         }
     }
     
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(title, forKey: .title)
+        try container.encodeIfPresent(productId, forKey: .productId)
+        try container.encodeIfPresent(sku, forKey: .sku)
+        try container.encodeIfPresent(barcode, forKey: .barcode)
+        try container.encodeIfPresent(ean, forKey: .ean)
+        try container.encodeIfPresent(upc, forKey: .upc)
+        try container.encode(inventoryQuantity, forKey: .inventoryQuantity)
+        try container.encode(allowBackorder, forKey: .allowBackorder)
+        try container.encode(manageInventory, forKey: .manageInventory)
+        try container.encodeIfPresent(hsCode, forKey: .hsCode)
+        try container.encodeIfPresent(originCountry, forKey: .originCountry)
+        try container.encodeIfPresent(midCode, forKey: .midCode)
+        try container.encodeIfPresent(material, forKey: .material)
+        try container.encodeIfPresent(weight, forKey: .weight)
+        try container.encodeIfPresent(length, forKey: .length)
+        try container.encodeIfPresent(height, forKey: .height)
+        try container.encodeIfPresent(width, forKey: .width)
+        try container.encodeIfPresent(options, forKey: .options)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
+        
+        // Handle metadata encoding
+        if let metadata = metadata {
+            let encodableMetadata = metadata.mapValues { AnyCodable($0) }
+            try container.encode(encodableMetadata, forKey: .metadata)
+        }
+    }
+    
     private static func decodeFlexibleInt(from container: KeyedDecodingContainer<CodingKeys>, forKey key: CodingKeys) -> Int? {
         if let intValue = try? container.decodeIfPresent(Int.self, forKey: key) {
             return intValue
@@ -371,6 +496,23 @@ struct ProductCollection: Codable, Identifiable {
             metadata = nil
         }
     }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(title, forKey: .title)
+        try container.encodeIfPresent(handle, forKey: .handle)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
+        
+        // Handle metadata encoding
+        if let metadata = metadata {
+            let encodableMetadata = metadata.mapValues { AnyCodable($0) }
+            try container.encode(encodableMetadata, forKey: .metadata)
+        }
+    }
 }
 
 struct ProductType: Codable, Identifiable {
@@ -406,6 +548,22 @@ struct ProductType: Codable, Identifiable {
             }
         } else {
             metadata = nil
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(value, forKey: .value)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
+        
+        // Handle metadata encoding
+        if let metadata = metadata {
+            let encodableMetadata = metadata.mapValues { AnyCodable($0) }
+            try container.encode(encodableMetadata, forKey: .metadata)
         }
     }
 }
@@ -463,6 +621,29 @@ struct ProductCategory: Codable, Identifiable {
             metadata = nil
         }
     }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encodeIfPresent(description, forKey: .description)
+        try container.encodeIfPresent(handle, forKey: .handle)
+        try container.encode(isActive, forKey: .isActive)
+        try container.encode(isInternal, forKey: .isInternal)
+        try container.encodeIfPresent(parentCategoryId, forKey: .parentCategoryId)
+        try container.encodeIfPresent(categoryChildren, forKey: .categoryChildren)
+        try container.encodeIfPresent(rank, forKey: .rank)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
+        
+        // Handle metadata encoding
+        if let metadata = metadata {
+            let encodableMetadata = metadata.mapValues { AnyCodable($0) }
+            try container.encode(encodableMetadata, forKey: .metadata)
+        }
+    }
 }
 
 struct ProductTag: Codable, Identifiable {
@@ -498,6 +679,22 @@ struct ProductTag: Codable, Identifiable {
             }
         } else {
             metadata = nil
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(value, forKey: .value)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
+        
+        // Handle metadata encoding
+        if let metadata = metadata {
+            let encodableMetadata = metadata.mapValues { AnyCodable($0) }
+            try container.encode(encodableMetadata, forKey: .metadata)
         }
     }
 }
