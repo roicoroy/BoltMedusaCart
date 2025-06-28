@@ -1,6 +1,6 @@
 //
 //  Product.swift
-//  BoltMedusaAuth
+//  BoltMedusaCart
 //
 //  Created by Ricardo Bento on 28/06/2025.
 //
@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-// MARK: - Product Models
+// MARK: - Product Models (Updated for Medusa Store API v2)
 struct Product: Codable, Identifiable {
     let id: String
     let title: String
@@ -16,7 +16,7 @@ struct Product: Codable, Identifiable {
     let description: String?
     let handle: String?
     let isGiftcard: Bool
-    let status: ProductStatus?
+    let status: ProductStatus
     let images: [ProductImage]?
     let thumbnail: String?
     let options: [ProductOption]?
@@ -25,6 +25,8 @@ struct Product: Codable, Identifiable {
     let collectionId: String?
     let type: ProductType?
     let typeId: String?
+    let categories: [ProductCategory]?
+    let tags: [ProductTag]?
     let weight: Int?
     let length: Int?
     let height: Int?
@@ -33,14 +35,15 @@ struct Product: Codable, Identifiable {
     let originCountry: String?
     let midCode: String?
     let material: String?
-    let discountable: Bool?
+    let discountable: Bool
     let externalId: String?
+    let metadata: [String: Any]?
     let createdAt: String
     let updatedAt: String
     let deletedAt: String?
     
     enum CodingKeys: String, CodingKey {
-        case id, title, subtitle, description, handle, images, thumbnail, options, variants, collection, type, weight, length, height, width, material, discountable
+        case id, title, subtitle, description, handle, images, thumbnail, options, variants, collection, type, weight, length, height, width, material, discountable, categories, tags, metadata
         case isGiftcard = "is_giftcard"
         case status
         case collectionId = "collection_id"
@@ -54,7 +57,7 @@ struct Product: Codable, Identifiable {
         case deletedAt = "deleted_at"
     }
     
-    // Custom decoder to handle flexible numeric types
+    // Custom decoder to handle flexible types and metadata
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
@@ -64,7 +67,7 @@ struct Product: Codable, Identifiable {
         description = try container.decodeIfPresent(String.self, forKey: .description)
         handle = try container.decodeIfPresent(String.self, forKey: .handle)
         isGiftcard = try container.decode(Bool.self, forKey: .isGiftcard)
-        status = try container.decodeIfPresent(ProductStatus.self, forKey: .status)
+        status = try container.decode(ProductStatus.self, forKey: .status)
         images = try container.decodeIfPresent([ProductImage].self, forKey: .images)
         thumbnail = try container.decodeIfPresent(String.self, forKey: .thumbnail)
         options = try container.decodeIfPresent([ProductOption].self, forKey: .options)
@@ -73,38 +76,83 @@ struct Product: Codable, Identifiable {
         collectionId = try container.decodeIfPresent(String.self, forKey: .collectionId)
         type = try container.decodeIfPresent(ProductType.self, forKey: .type)
         typeId = try container.decodeIfPresent(String.self, forKey: .typeId)
+        categories = try container.decodeIfPresent([ProductCategory].self, forKey: .categories)
+        tags = try container.decodeIfPresent([ProductTag].self, forKey: .tags)
         hsCode = try container.decodeIfPresent(String.self, forKey: .hsCode)
         originCountry = try container.decodeIfPresent(String.self, forKey: .originCountry)
         midCode = try container.decodeIfPresent(String.self, forKey: .midCode)
         material = try container.decodeIfPresent(String.self, forKey: .material)
-        discountable = try container.decodeIfPresent(Bool.self, forKey: .discountable)
+        discountable = try container.decodeIfPresent(Bool.self, forKey: .discountable) ?? true
         externalId = try container.decodeIfPresent(String.self, forKey: .externalId)
         createdAt = try container.decode(String.self, forKey: .createdAt)
         updatedAt = try container.decode(String.self, forKey: .updatedAt)
         deletedAt = try container.decodeIfPresent(String.self, forKey: .deletedAt)
         
-        // Handle flexible numeric types (can be string or int)
+        // Handle flexible numeric types
         weight = Self.decodeFlexibleInt(from: container, forKey: .weight)
         length = Self.decodeFlexibleInt(from: container, forKey: .length)
         height = Self.decodeFlexibleInt(from: container, forKey: .height)
         width = Self.decodeFlexibleInt(from: container, forKey: .width)
+        
+        // Handle metadata as flexible dictionary
+        if container.contains(.metadata) {
+            if let metadataDict = try? container.decode([String: AnyCodable].self, forKey: .metadata) {
+                metadata = metadataDict.mapValues { $0.value }
+            } else {
+                metadata = nil
+            }
+        } else {
+            metadata = nil
+        }
     }
     
     private static func decodeFlexibleInt(from container: KeyedDecodingContainer<CodingKeys>, forKey key: CodingKeys) -> Int? {
-        // Try to decode as Int first
         if let intValue = try? container.decodeIfPresent(Int.self, forKey: key) {
             return intValue
         }
-        // If that fails, try to decode as String and convert
         if let stringValue = try? container.decodeIfPresent(String.self, forKey: key) {
             return Int(stringValue)
         }
-        // If both fail, return nil
         return nil
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(title, forKey: .title)
+        try container.encodeIfPresent(subtitle, forKey: .subtitle)
+        try container.encodeIfPresent(description, forKey: .description)
+        try container.encodeIfPresent(handle, forKey: .handle)
+        try container.encode(isGiftcard, forKey: .isGiftcard)
+        try container.encode(status, forKey: .status)
+        try container.encodeIfPresent(images, forKey: .images)
+        try container.encodeIfPresent(thumbnail, forKey: .thumbnail)
+        try container.encodeIfPresent(options, forKey: .options)
+        try container.encodeIfPresent(variants, forKey: .variants)
+        try container.encodeIfPresent(collection, forKey: .collection)
+        try container.encodeIfPresent(collectionId, forKey: .collectionId)
+        try container.encodeIfPresent(type, forKey: .type)
+        try container.encodeIfPresent(typeId, forKey: .typeId)
+        try container.encodeIfPresent(categories, forKey: .categories)
+        try container.encodeIfPresent(tags, forKey: .tags)
+        try container.encodeIfPresent(weight, forKey: .weight)
+        try container.encodeIfPresent(length, forKey: .length)
+        try container.encodeIfPresent(height, forKey: .height)
+        try container.encodeIfPresent(width, forKey: .width)
+        try container.encodeIfPresent(hsCode, forKey: .hsCode)
+        try container.encodeIfPresent(originCountry, forKey: .originCountry)
+        try container.encodeIfPresent(midCode, forKey: .midCode)
+        try container.encodeIfPresent(material, forKey: .material)
+        try container.encode(discountable, forKey: .discountable)
+        try container.encodeIfPresent(externalId, forKey: .externalId)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
     }
 }
 
-enum ProductStatus: String, Codable {
+enum ProductStatus: String, Codable, CaseIterable {
     case draft = "draft"
     case proposed = "proposed"
     case published = "published"
@@ -114,36 +162,47 @@ enum ProductStatus: String, Codable {
 struct ProductImage: Codable, Identifiable {
     let id: String
     let url: String
-    let rank: Int?
-    let createdAt: String?
-    let updatedAt: String?
+    let metadata: [String: Any]?
+    let createdAt: String
+    let updatedAt: String
     let deletedAt: String?
     
     enum CodingKeys: String, CodingKey {
-        case id, url, rank
+        case id, url, metadata
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case deletedAt = "deleted_at"
     }
     
-    // Custom decoder to handle flexible rank type
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
         id = try container.decode(String.self, forKey: .id)
         url = try container.decode(String.self, forKey: .url)
-        createdAt = try container.decodeIfPresent(String.self, forKey: .createdAt)
-        updatedAt = try container.decodeIfPresent(String.self, forKey: .updatedAt)
+        createdAt = try container.decode(String.self, forKey: .createdAt)
+        updatedAt = try container.decode(String.self, forKey: .updatedAt)
         deletedAt = try container.decodeIfPresent(String.self, forKey: .deletedAt)
         
-        // Handle flexible rank type
-        if let intValue = try? container.decodeIfPresent(Int.self, forKey: .rank) {
-            rank = intValue
-        } else if let stringValue = try? container.decodeIfPresent(String.self, forKey: .rank) {
-            rank = Int(stringValue)
+        // Handle metadata
+        if container.contains(.metadata) {
+            if let metadataDict = try? container.decode([String: AnyCodable].self, forKey: .metadata) {
+                metadata = metadataDict.mapValues { $0.value }
+            } else {
+                metadata = nil
+            }
         } else {
-            rank = nil
+            metadata = nil
         }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(url, forKey: .url)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
     }
 }
 
@@ -152,16 +211,52 @@ struct ProductOption: Codable, Identifiable {
     let title: String
     let values: [ProductOptionValue]?
     let productId: String?
-    let createdAt: String?
-    let updatedAt: String?
+    let metadata: [String: Any]?
+    let createdAt: String
+    let updatedAt: String
     let deletedAt: String?
     
     enum CodingKeys: String, CodingKey {
-        case id, title, values
+        case id, title, values, metadata
         case productId = "product_id"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case deletedAt = "deleted_at"
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        id = try container.decode(String.self, forKey: .id)
+        title = try container.decode(String.self, forKey: .title)
+        values = try container.decodeIfPresent([ProductOptionValue].self, forKey: .values)
+        productId = try container.decodeIfPresent(String.self, forKey: .productId)
+        createdAt = try container.decode(String.self, forKey: .createdAt)
+        updatedAt = try container.decode(String.self, forKey: .updatedAt)
+        deletedAt = try container.decodeIfPresent(String.self, forKey: .deletedAt)
+        
+        // Handle metadata
+        if container.contains(.metadata) {
+            if let metadataDict = try? container.decode([String: AnyCodable].self, forKey: .metadata) {
+                metadata = metadataDict.mapValues { $0.value }
+            } else {
+                metadata = nil
+            }
+        } else {
+            metadata = nil
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(title, forKey: .title)
+        try container.encodeIfPresent(values, forKey: .values)
+        try container.encodeIfPresent(productId, forKey: .productId)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
     }
 }
 
@@ -169,16 +264,50 @@ struct ProductOptionValue: Codable, Identifiable {
     let id: String
     let value: String
     let optionId: String?
-    let createdAt: String?
-    let updatedAt: String?
+    let metadata: [String: Any]?
+    let createdAt: String
+    let updatedAt: String
     let deletedAt: String?
     
     enum CodingKeys: String, CodingKey {
-        case id, value
+        case id, value, metadata
         case optionId = "option_id"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case deletedAt = "deleted_at"
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        id = try container.decode(String.self, forKey: .id)
+        value = try container.decode(String.self, forKey: .value)
+        optionId = try container.decodeIfPresent(String.self, forKey: .optionId)
+        createdAt = try container.decode(String.self, forKey: .createdAt)
+        updatedAt = try container.decode(String.self, forKey: .updatedAt)
+        deletedAt = try container.decodeIfPresent(String.self, forKey: .deletedAt)
+        
+        // Handle metadata
+        if container.contains(.metadata) {
+            if let metadataDict = try? container.decode([String: AnyCodable].self, forKey: .metadata) {
+                metadata = metadataDict.mapValues { $0.value }
+            } else {
+                metadata = nil
+            }
+        } else {
+            metadata = nil
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(value, forKey: .value)
+        try container.encodeIfPresent(optionId, forKey: .optionId)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
     }
 }
 
@@ -190,8 +319,9 @@ struct ProductVariant: Codable, Identifiable {
     let barcode: String?
     let ean: String?
     let upc: String?
-    let allowBackorder: Bool?
-    let manageInventory: Bool?
+    let inventoryQuantity: Int
+    let allowBackorder: Bool
+    let manageInventory: Bool
     let hsCode: String?
     let originCountry: String?
     let midCode: String?
@@ -201,13 +331,15 @@ struct ProductVariant: Codable, Identifiable {
     let height: Int?
     let width: Int?
     let options: [ProductOptionValue]?
+    let metadata: [String: Any]?
     let createdAt: String
     let updatedAt: String
     let deletedAt: String?
     
     enum CodingKeys: String, CodingKey {
-        case id, title, sku, barcode, ean, upc, material, options
+        case id, title, sku, barcode, ean, upc, material, options, metadata
         case productId = "product_id"
+        case inventoryQuantity = "inventory_quantity"
         case allowBackorder = "allow_backorder"
         case manageInventory = "manage_inventory"
         case hsCode = "hs_code"
@@ -219,7 +351,6 @@ struct ProductVariant: Codable, Identifiable {
         case weight, length, height, width
     }
     
-    // Custom decoder to handle flexible numeric types
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
@@ -230,6 +361,9 @@ struct ProductVariant: Codable, Identifiable {
         barcode = try container.decodeIfPresent(String.self, forKey: .barcode)
         ean = try container.decodeIfPresent(String.self, forKey: .ean)
         upc = try container.decodeIfPresent(String.self, forKey: .upc)
+        inventoryQuantity = try container.decodeIfPresent(Int.self, forKey: .inventoryQuantity) ?? 0
+        allowBackorder = try container.decodeIfPresent(Bool.self, forKey: .allowBackorder) ?? false
+        manageInventory = try container.decodeIfPresent(Bool.self, forKey: .manageInventory) ?? true
         hsCode = try container.decodeIfPresent(String.self, forKey: .hsCode)
         originCountry = try container.decodeIfPresent(String.self, forKey: .originCountry)
         midCode = try container.decodeIfPresent(String.self, forKey: .midCode)
@@ -245,39 +379,53 @@ struct ProductVariant: Codable, Identifiable {
         height = Self.decodeFlexibleInt(from: container, forKey: .height)
         width = Self.decodeFlexibleInt(from: container, forKey: .width)
         
-        // Handle flexible boolean types
-        allowBackorder = Self.decodeFlexibleBool(from: container, forKey: .allowBackorder)
-        manageInventory = Self.decodeFlexibleBool(from: container, forKey: .manageInventory)
+        // Handle metadata
+        if container.contains(.metadata) {
+            if let metadataDict = try? container.decode([String: AnyCodable].self, forKey: .metadata) {
+                metadata = metadataDict.mapValues { $0.value }
+            } else {
+                metadata = nil
+            }
+        } else {
+            metadata = nil
+        }
     }
     
     private static func decodeFlexibleInt(from container: KeyedDecodingContainer<CodingKeys>, forKey key: CodingKeys) -> Int? {
-        // Try to decode as Int first
         if let intValue = try? container.decodeIfPresent(Int.self, forKey: key) {
             return intValue
         }
-        // If that fails, try to decode as String and convert
         if let stringValue = try? container.decodeIfPresent(String.self, forKey: key) {
             return Int(stringValue)
         }
-        // If both fail, return nil
         return nil
     }
     
-    private static func decodeFlexibleBool(from container: KeyedDecodingContainer<CodingKeys>, forKey key: CodingKeys) -> Bool? {
-        // Try to decode as Bool first
-        if let boolValue = try? container.decodeIfPresent(Bool.self, forKey: key) {
-            return boolValue
-        }
-        // If that fails, try to decode as String and convert
-        if let stringValue = try? container.decodeIfPresent(String.self, forKey: key) {
-            return stringValue.lowercased() == "true" || stringValue == "1"
-        }
-        // If that fails, try to decode as Int and convert
-        if let intValue = try? container.decodeIfPresent(Int.self, forKey: key) {
-            return intValue != 0
-        }
-        // If all fail, return nil
-        return nil
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(title, forKey: .title)
+        try container.encodeIfPresent(productId, forKey: .productId)
+        try container.encodeIfPresent(sku, forKey: .sku)
+        try container.encodeIfPresent(barcode, forKey: .barcode)
+        try container.encodeIfPresent(ean, forKey: .ean)
+        try container.encodeIfPresent(upc, forKey: .upc)
+        try container.encode(inventoryQuantity, forKey: .inventoryQuantity)
+        try container.encode(allowBackorder, forKey: .allowBackorder)
+        try container.encode(manageInventory, forKey: .manageInventory)
+        try container.encodeIfPresent(hsCode, forKey: .hsCode)
+        try container.encodeIfPresent(originCountry, forKey: .originCountry)
+        try container.encodeIfPresent(midCode, forKey: .midCode)
+        try container.encodeIfPresent(material, forKey: .material)
+        try container.encodeIfPresent(weight, forKey: .weight)
+        try container.encodeIfPresent(length, forKey: .length)
+        try container.encodeIfPresent(height, forKey: .height)
+        try container.encodeIfPresent(width, forKey: .width)
+        try container.encodeIfPresent(options, forKey: .options)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
     }
 }
 
@@ -285,30 +433,260 @@ struct ProductCollection: Codable, Identifiable {
     let id: String
     let title: String
     let handle: String?
-    let createdAt: String?
-    let updatedAt: String?
+    let metadata: [String: Any]?
+    let createdAt: String
+    let updatedAt: String
     let deletedAt: String?
     
     enum CodingKeys: String, CodingKey {
-        case id, title, handle
+        case id, title, handle, metadata
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case deletedAt = "deleted_at"
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        id = try container.decode(String.self, forKey: .id)
+        title = try container.decode(String.self, forKey: .title)
+        handle = try container.decodeIfPresent(String.self, forKey: .handle)
+        createdAt = try container.decode(String.self, forKey: .createdAt)
+        updatedAt = try container.decode(String.self, forKey: .updatedAt)
+        deletedAt = try container.decodeIfPresent(String.self, forKey: .deletedAt)
+        
+        // Handle metadata
+        if container.contains(.metadata) {
+            if let metadataDict = try? container.decode([String: AnyCodable].self, forKey: .metadata) {
+                metadata = metadataDict.mapValues { $0.value }
+            } else {
+                metadata = nil
+            }
+        } else {
+            metadata = nil
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(title, forKey: .title)
+        try container.encodeIfPresent(handle, forKey: .handle)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
     }
 }
 
 struct ProductType: Codable, Identifiable {
     let id: String
     let value: String
-    let createdAt: String?
-    let updatedAt: String?
+    let metadata: [String: Any]?
+    let createdAt: String
+    let updatedAt: String
     let deletedAt: String?
     
     enum CodingKeys: String, CodingKey {
-        case id, value
+        case id, value, metadata
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case deletedAt = "deleted_at"
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        id = try container.decode(String.self, forKey: .id)
+        value = try container.decode(String.self, forKey: .value)
+        createdAt = try container.decode(String.self, forKey: .createdAt)
+        updatedAt = try container.decode(String.self, forKey: .updatedAt)
+        deletedAt = try container.decodeIfPresent(String.self, forKey: .deletedAt)
+        
+        // Handle metadata
+        if container.contains(.metadata) {
+            if let metadataDict = try? container.decode([String: AnyCodable].self, forKey: .metadata) {
+                metadata = metadataDict.mapValues { $0.value }
+            } else {
+                metadata = nil
+            }
+        } else {
+            metadata = nil
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(value, forKey: .value)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
+    }
+}
+
+struct ProductCategory: Codable, Identifiable {
+    let id: String
+    let name: String
+    let description: String?
+    let handle: String?
+    let isActive: Bool
+    let isInternal: Bool
+    let parentCategoryId: String?
+    let categoryChildren: [ProductCategory]?
+    let rank: Int?
+    let metadata: [String: Any]?
+    let createdAt: String
+    let updatedAt: String
+    let deletedAt: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, name, description, handle, rank, metadata
+        case isActive = "is_active"
+        case isInternal = "is_internal"
+        case parentCategoryId = "parent_category_id"
+        case categoryChildren = "category_children"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+        case deletedAt = "deleted_at"
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        description = try container.decodeIfPresent(String.self, forKey: .description)
+        handle = try container.decodeIfPresent(String.self, forKey: .handle)
+        isActive = try container.decodeIfPresent(Bool.self, forKey: .isActive) ?? true
+        isInternal = try container.decodeIfPresent(Bool.self, forKey: .isInternal) ?? false
+        parentCategoryId = try container.decodeIfPresent(String.self, forKey: .parentCategoryId)
+        categoryChildren = try container.decodeIfPresent([ProductCategory].self, forKey: .categoryChildren)
+        rank = try container.decodeIfPresent(Int.self, forKey: .rank)
+        createdAt = try container.decode(String.self, forKey: .createdAt)
+        updatedAt = try container.decode(String.self, forKey: .updatedAt)
+        deletedAt = try container.decodeIfPresent(String.self, forKey: .deletedAt)
+        
+        // Handle metadata
+        if container.contains(.metadata) {
+            if let metadataDict = try? container.decode([String: AnyCodable].self, forKey: .metadata) {
+                metadata = metadataDict.mapValues { $0.value }
+            } else {
+                metadata = nil
+            }
+        } else {
+            metadata = nil
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encodeIfPresent(description, forKey: .description)
+        try container.encodeIfPresent(handle, forKey: .handle)
+        try container.encode(isActive, forKey: .isActive)
+        try container.encode(isInternal, forKey: .isInternal)
+        try container.encodeIfPresent(parentCategoryId, forKey: .parentCategoryId)
+        try container.encodeIfPresent(categoryChildren, forKey: .categoryChildren)
+        try container.encodeIfPresent(rank, forKey: .rank)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
+    }
+}
+
+struct ProductTag: Codable, Identifiable {
+    let id: String
+    let value: String
+    let metadata: [String: Any]?
+    let createdAt: String
+    let updatedAt: String
+    let deletedAt: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, value, metadata
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+        case deletedAt = "deleted_at"
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        id = try container.decode(String.self, forKey: .id)
+        value = try container.decode(String.self, forKey: .value)
+        createdAt = try container.decode(String.self, forKey: .createdAt)
+        updatedAt = try container.decode(String.self, forKey: .updatedAt)
+        deletedAt = try container.decodeIfPresent(String.self, forKey: .deletedAt)
+        
+        // Handle metadata
+        if container.contains(.metadata) {
+            if let metadataDict = try? container.decode([String: AnyCodable].self, forKey: .metadata) {
+                metadata = metadataDict.mapValues { $0.value }
+            } else {
+                metadata = nil
+            }
+        } else {
+            metadata = nil
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(value, forKey: .value)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
+    }
+}
+
+// Helper struct for flexible JSON decoding
+struct AnyCodable: Codable {
+    let value: Any
+    
+    init(_ value: Any) {
+        self.value = value
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        
+        if let bool = try? container.decode(Bool.self) {
+            value = bool
+        } else if let int = try? container.decode(Int.self) {
+            value = int
+        } else if let double = try? container.decode(Double.self) {
+            value = double
+        } else if let string = try? container.decode(String.self) {
+            value = string
+        } else if container.decodeNil() {
+            value = NSNull()
+        } else {
+            throw DecodingError.typeMismatch(AnyCodable.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unsupported type"))
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        
+        if let bool = value as? Bool {
+            try container.encode(bool)
+        } else if let int = value as? Int {
+            try container.encode(int)
+        } else if let double = value as? Double {
+            try container.encode(double)
+        } else if let string = value as? String {
+            try container.encode(string)
+        } else if value is NSNull {
+            try container.encodeNil()
+        } else {
+            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "Unsupported type"))
+        }
     }
 }
 
@@ -326,80 +704,61 @@ struct ProductResponse: Codable {
 
 // MARK: - Helper Extensions
 extension Product {
-    func displayPrice(currencyCode: String) -> String {
-        // Since we don't have calculated prices in this schema,
-        // we'll show a placeholder with the correct currency
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = currencyCode.uppercased()
-        formatter.minimumFractionDigits = 2
-        formatter.maximumFractionDigits = 2
-        
-        // Return a placeholder price formatted in the correct currency
-        return formatter.string(from: NSNumber(value: 0.00)) ?? "\(currencyCode.uppercased()) 0.00"
-    }
-    
-    var displayPrice: String {
-        // Default fallback for when currency is not available
-        return "Price available on request"
-    }
-    
     var displayImage: String? {
         return thumbnail ?? images?.first?.url
     }
     
     var isAvailable: Bool {
-        // Without inventory quantity, we'll base availability on backorder settings
-        guard let variant = variants?.first else { return true }
-        return variant.allowBackorder ?? true
+        guard let variant = variants?.first else { return false }
+        return variant.isInStock
     }
     
     var displayStatus: String {
-        return status?.rawValue.capitalized ?? "Unknown"
+        return status.rawValue.capitalized
+    }
+    
+    var isPublished: Bool {
+        return status == .published
+    }
+    
+    var categoryNames: [String] {
+        return categories?.map { $0.name } ?? []
+    }
+    
+    var tagValues: [String] {
+        return tags?.map { $0.value } ?? []
     }
 }
 
 extension ProductVariant {
-    func displayPrice(currencyCode: String) -> String {
-        // Since we don't have calculated prices in this schema,
-        // we'll show a placeholder with the correct currency
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = currencyCode.uppercased()
-        formatter.minimumFractionDigits = 2
-        formatter.maximumFractionDigits = 2
-        
-        // Return a placeholder price formatted in the correct currency
-        return formatter.string(from: NSNumber(value: 0.00)) ?? "\(currencyCode.uppercased()) 0.00"
-    }
-    
-    var displayPrice: String {
-        // Default fallback for when currency is not available
-        return "Price available on request"
-    }
-    
     var isInStock: Bool {
-        // Without inventory quantity, we'll assume in stock if backorder is allowed
-        return allowBackorder ?? true
+        if !manageInventory {
+            return true
+        }
+        return inventoryQuantity > 0 || allowBackorder
     }
     
     var stockStatus: String {
-        if allowBackorder == true {
+        if !manageInventory {
             return "Available"
-        } else if manageInventory == true {
-            return "Contact for availability"
+        }
+        
+        if inventoryQuantity > 0 {
+            return "In Stock (\(inventoryQuantity))"
+        } else if allowBackorder {
+            return "Available (Backorder)"
         } else {
-            return "Available"
+            return "Out of Stock"
         }
     }
     
     var stockStatusColor: Color {
-        if allowBackorder == true {
+        if !manageInventory || inventoryQuantity > 0 {
             return .green
-        } else if manageInventory == true {
+        } else if allowBackorder {
             return .orange
         } else {
-            return .green
+            return .red
         }
     }
 }
@@ -407,5 +766,15 @@ extension ProductVariant {
 extension ProductImage {
     var displayUrl: String {
         return url
+    }
+}
+
+extension ProductCategory {
+    var isTopLevel: Bool {
+        return parentCategoryId == nil
+    }
+    
+    var hasChildren: Bool {
+        return categoryChildren?.isEmpty == false
     }
 }

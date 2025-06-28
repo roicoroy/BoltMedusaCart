@@ -1,29 +1,92 @@
 //
 //  Region.swift
-//  BoltMedusaAuth
+//  BoltMedusaCart
 //
 //  Created by Ricardo Bento on 28/06/2025.
 //
 
 import Foundation
 
-// MARK: - Region Models (Updated for actual Medusa API)
+// MARK: - Region Models (Updated for Medusa Store API v2)
 struct Region: Codable, Identifiable {
     let id: String
     let name: String
     let currencyCode: String
+    let automaticTaxes: Bool
+    let giftCardsTaxable: Bool
+    let taxInclusivePricing: Bool
+    let taxRate: Double?
+    let taxCode: String?
     let countries: [Country]?
-    let createdAt: String?
-    let updatedAt: String?
+    let paymentProviders: [PaymentProvider]?
+    let fulfillmentProviders: [FulfillmentProvider]?
+    let metadata: [String: Any]?
+    let createdAt: String
+    let updatedAt: String
     let deletedAt: String?
-    let metadata: String?
     
     enum CodingKeys: String, CodingKey {
         case id, name, countries, metadata
         case currencyCode = "currency_code"
+        case automaticTaxes = "automatic_taxes"
+        case giftCardsTaxable = "gift_cards_taxable"
+        case taxInclusivePricing = "tax_inclusive_pricing"
+        case taxRate = "tax_rate"
+        case taxCode = "tax_code"
+        case paymentProviders = "payment_providers"
+        case fulfillmentProviders = "fulfillment_providers"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case deletedAt = "deleted_at"
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        currencyCode = try container.decode(String.self, forKey: .currencyCode)
+        automaticTaxes = try container.decodeIfPresent(Bool.self, forKey: .automaticTaxes) ?? false
+        giftCardsTaxable = try container.decodeIfPresent(Bool.self, forKey: .giftCardsTaxable) ?? true
+        taxInclusivePricing = try container.decodeIfPresent(Bool.self, forKey: .taxInclusivePricing) ?? false
+        taxRate = try container.decodeIfPresent(Double.self, forKey: .taxRate)
+        taxCode = try container.decodeIfPresent(String.self, forKey: .taxCode)
+        countries = try container.decodeIfPresent([Country].self, forKey: .countries)
+        paymentProviders = try container.decodeIfPresent([PaymentProvider].self, forKey: .paymentProviders)
+        fulfillmentProviders = try container.decodeIfPresent([FulfillmentProvider].self, forKey: .fulfillmentProviders)
+        createdAt = try container.decode(String.self, forKey: .createdAt)
+        updatedAt = try container.decode(String.self, forKey: .updatedAt)
+        deletedAt = try container.decodeIfPresent(String.self, forKey: .deletedAt)
+        
+        // Handle metadata
+        if container.contains(.metadata) {
+            if let metadataDict = try? container.decode([String: AnyCodable].self, forKey: .metadata) {
+                metadata = metadataDict.mapValues { $0.value }
+            } else {
+                metadata = nil
+            }
+        } else {
+            metadata = nil
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(currencyCode, forKey: .currencyCode)
+        try container.encode(automaticTaxes, forKey: .automaticTaxes)
+        try container.encode(giftCardsTaxable, forKey: .giftCardsTaxable)
+        try container.encode(taxInclusivePricing, forKey: .taxInclusivePricing)
+        try container.encodeIfPresent(taxRate, forKey: .taxRate)
+        try container.encodeIfPresent(taxCode, forKey: .taxCode)
+        try container.encodeIfPresent(countries, forKey: .countries)
+        try container.encodeIfPresent(paymentProviders, forKey: .paymentProviders)
+        try container.encodeIfPresent(fulfillmentProviders, forKey: .fulfillmentProviders)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
     }
 }
 
@@ -33,13 +96,13 @@ struct Country: Codable, Identifiable {
     let numCode: String
     let name: String
     let displayName: String
-    let regionId: String
-    let metadata: String?
-    let createdAt: String?
-    let updatedAt: String?
+    let regionId: String?
+    let metadata: [String: Any]?
+    let createdAt: String
+    let updatedAt: String
     let deletedAt: String?
     
-    var id: String { iso2 } // Use iso2 as the identifier
+    var id: String { iso2 }
     
     enum CodingKeys: String, CodingKey {
         case name, metadata
@@ -52,6 +115,110 @@ struct Country: Codable, Identifiable {
         case updatedAt = "updated_at"
         case deletedAt = "deleted_at"
     }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        iso2 = try container.decode(String.self, forKey: .iso2)
+        iso3 = try container.decode(String.self, forKey: .iso3)
+        numCode = try container.decode(String.self, forKey: .numCode)
+        name = try container.decode(String.self, forKey: .name)
+        displayName = try container.decode(String.self, forKey: .displayName)
+        regionId = try container.decodeIfPresent(String.self, forKey: .regionId)
+        createdAt = try container.decode(String.self, forKey: .createdAt)
+        updatedAt = try container.decode(String.self, forKey: .updatedAt)
+        deletedAt = try container.decodeIfPresent(String.self, forKey: .deletedAt)
+        
+        // Handle metadata
+        if container.contains(.metadata) {
+            if let metadataDict = try? container.decode([String: AnyCodable].self, forKey: .metadata) {
+                metadata = metadataDict.mapValues { $0.value }
+            } else {
+                metadata = nil
+            }
+        } else {
+            metadata = nil
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(iso2, forKey: .iso2)
+        try container.encode(iso3, forKey: .iso3)
+        try container.encode(numCode, forKey: .numCode)
+        try container.encode(name, forKey: .name)
+        try container.encode(displayName, forKey: .displayName)
+        try container.encodeIfPresent(regionId, forKey: .regionId)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
+    }
+}
+
+struct PaymentProvider: Codable, Identifiable {
+    let id: String
+    let isInstalled: Bool
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case isInstalled = "is_installed"
+    }
+}
+
+struct FulfillmentProvider: Codable, Identifiable {
+    let id: String
+    let isInstalled: Bool
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case isInstalled = "is_installed"
+    }
+}
+
+// Helper struct for flexible JSON decoding
+struct AnyCodable: Codable {
+    let value: Any
+    
+    init(_ value: Any) {
+        self.value = value
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        
+        if let bool = try? container.decode(Bool.self) {
+            value = bool
+        } else if let int = try? container.decode(Int.self) {
+            value = int
+        } else if let double = try? container.decode(Double.self) {
+            value = double
+        } else if let string = try? container.decode(String.self) {
+            value = string
+        } else if container.decodeNil() {
+            value = NSNull()
+        } else {
+            throw DecodingError.typeMismatch(AnyCodable.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Unsupported type"))
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        
+        if let bool = value as? Bool {
+            try container.encode(bool)
+        } else if let int = value as? Int {
+            try container.encode(int)
+        } else if let double = value as? Double {
+            try container.encode(double)
+        } else if let string = value as? String {
+            try container.encode(string)
+        } else if value is NSNull {
+            try container.encodeNil()
+        } else {
+            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "Unsupported type"))
+        }
+    }
 }
 
 // MARK: - Country Selection Model (flattened from regions)
@@ -61,16 +228,14 @@ struct CountrySelection: Codable, Identifiable, Equatable {
     let currencyCode: String   // currency (e.g., "eur")
     let regionId: String       // region ID for cart creation
     
-    var id: String { country } // Use country code as identifier
+    var id: String { country }
     
-    // MARK: - Equatable Conformance
     static func == (lhs: CountrySelection, rhs: CountrySelection) -> Bool {
         return lhs.country == rhs.country &&
                lhs.regionId == rhs.regionId &&
                lhs.currencyCode == rhs.currencyCode
     }
     
-    // Computed properties for display
     var flagEmoji: String {
         let iso = country.lowercased()
         
@@ -131,12 +296,11 @@ extension Region {
     }
     
     var flagEmoji: String {
-        // Return flag emoji based on region name or currency
         let regionName = name.lowercased()
         let currency = currencyCode.lowercased()
         
         if hasUK && currency == "eur" {
-            return "🇪🇺" // European Union flag for Europe region with UK
+            return "🇪🇺"
         } else if regionName.contains("europe") || currency == "eur" {
             return "🇪🇺"
         } else if regionName.contains("united states") || regionName.contains("usa") || currency == "usd" {
@@ -159,7 +323,6 @@ extension Region {
             return "No countries"
         }
         
-        // If there are many countries, show a summary
         if countries.count > 3 {
             let firstThree = countries.prefix(3).map { $0.displayName }
             return "\(firstThree.joined(separator: ", ")) and \(countries.count - 3) more"
@@ -178,7 +341,6 @@ extension Region {
         }
     }
     
-    // Convert region's countries to CountrySelection objects
     func toCountrySelections() -> [CountrySelection] {
         guard let countries = countries else { return [] }
         
@@ -190,6 +352,22 @@ extension Region {
                 regionId: id
             )
         }
+    }
+    
+    var taxDisplayText: String {
+        if automaticTaxes {
+            if let taxRate = taxRate {
+                return "Automatic taxes (\(String(format: "%.1f", taxRate * 100))%)"
+            } else {
+                return "Automatic taxes"
+            }
+        } else {
+            return "Manual taxes"
+        }
+    }
+    
+    var pricingDisplayText: String {
+        return taxInclusivePricing ? "Tax-inclusive pricing" : "Tax-exclusive pricing"
     }
 }
 
