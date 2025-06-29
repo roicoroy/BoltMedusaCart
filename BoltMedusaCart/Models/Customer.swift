@@ -160,6 +160,28 @@ struct CustomerUpdateRequest: Codable {
         self.metadata = metadata
     }
     
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        email = try container.decodeIfPresent(String.self, forKey: .email)
+        firstName = try container.decodeIfPresent(String.self, forKey: .firstName)
+        lastName = try container.decodeIfPresent(String.self, forKey: .lastName)
+        phone = try container.decodeIfPresent(String.self, forKey: .phone)
+        companyName = try container.decodeIfPresent(String.self, forKey: .companyName)
+        billingAddressId = try container.decodeIfPresent(String.self, forKey: .billingAddressId)
+        
+        // Handle metadata
+        if container.contains(.metadata) {
+            if let metadataDict = try? container.decode([String: AnyCodable].self, forKey: .metadata) {
+                metadata = metadataDict.mapValues { $0.value }
+            } else {
+                metadata = nil
+            }
+        } else {
+            metadata = nil
+        }
+    }
+    
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         
