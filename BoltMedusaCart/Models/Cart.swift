@@ -237,7 +237,7 @@ struct DiscountRule: Codable {
 struct DiscountCondition: Codable {
     let id: String
     let type: String
-    let operator: String
+    let operatorType: String  // Changed from 'operator' to 'operatorType'
     let discountRuleId: String
     let createdAt: String
     let updatedAt: String
@@ -245,7 +245,8 @@ struct DiscountCondition: Codable {
     let metadata: [String: AnyCodable]?
     
     enum CodingKeys: String, CodingKey {
-        case id, type, operator, metadata
+        case id, type, metadata
+        case operatorType = "operator"  // Maps to 'operator' in JSON
         case discountRuleId = "discount_rule_id"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
