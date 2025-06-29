@@ -445,13 +445,36 @@ struct ProductOptionValue: Codable, Identifiable {
     }
 }
 
+// MARK: - Product Category Model (Fixed Recursive Issue)
 struct ProductCategory: Codable, Identifiable {
     let id: String
     let name: String
     let handle: String
     let parentCategoryId: String?
+    let rank: Int?
+    let createdAt: String
+    let updatedAt: String
+    let metadata: [String: AnyCodable]?
+    
+    // Note: Removed recursive references to avoid circular dependency
+    // Parent and children relationships should be handled at the service level
+    // by fetching related categories separately when needed
+    
+    enum CodingKeys: String, CodingKey {
+        case id, name, handle, rank, metadata
+        case parentCategoryId = "parent_category_id"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+}
+
+// MARK: - Category Relationship Models (For handling hierarchy)
+struct ProductCategoryWithParent: Codable, Identifiable {
+    let id: String
+    let name: String
+    let handle: String
+    let parentCategoryId: String?
     let parentCategory: ProductCategory?
-    let categoryChildren: [ProductCategory]?
     let rank: Int?
     let createdAt: String
     let updatedAt: String
@@ -461,6 +484,25 @@ struct ProductCategory: Codable, Identifiable {
         case id, name, handle, rank, metadata
         case parentCategoryId = "parent_category_id"
         case parentCategory = "parent_category"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+}
+
+struct ProductCategoryWithChildren: Codable, Identifiable {
+    let id: String
+    let name: String
+    let handle: String
+    let parentCategoryId: String?
+    let categoryChildren: [ProductCategory]?
+    let rank: Int?
+    let createdAt: String
+    let updatedAt: String
+    let metadata: [String: AnyCodable]?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, name, handle, rank, metadata
+        case parentCategoryId = "parent_category_id"
         case categoryChildren = "category_children"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
