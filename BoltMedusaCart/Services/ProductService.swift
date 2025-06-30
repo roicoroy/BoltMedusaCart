@@ -52,10 +52,14 @@ class ProductService: ObservableObject {
             let queryString = queryParams.isEmpty ? "" : "?" + queryParams.joined(separator: "&")
             let endpoint = "/store/products\(queryString)"
             
+            print("🔍 Fetching products from: \(endpoint)")
+            
             let response: ProductsResponse = try await apiService.request(
                 endpoint: endpoint,
                 method: .GET
             )
+            
+            print("✅ Received \(response.products.count) products")
             
             if offset == 0 {
                 products = response.products
@@ -63,6 +67,7 @@ class ProductService: ObservableObject {
                 products.append(contentsOf: response.products)
             }
         } catch {
+            print("❌ Error fetching products: \(error)")
             self.error = error.localizedDescription
         }
         
@@ -95,9 +100,6 @@ class ProductService: ObservableObject {
     // MARK: - Categories
     
     func fetchCategories() async {
-        isLoading = true
-        error = nil
-        
         do {
             let response: CategoriesResponse = try await apiService.request(
                 endpoint: "/store/product-categories",
@@ -106,18 +108,14 @@ class ProductService: ObservableObject {
             
             categories = response.productCategories
         } catch {
-            self.error = error.localizedDescription
+            print("❌ Error fetching categories: \(error)")
+            // Don't set error for categories as it's not critical
         }
-        
-        isLoading = false
     }
     
     // MARK: - Regions
     
     func fetchRegions() async {
-        isLoading = true
-        error = nil
-        
         do {
             let response: RegionsResponse = try await apiService.request(
                 endpoint: "/store/regions",
@@ -125,11 +123,11 @@ class ProductService: ObservableObject {
             )
             
             regions = response.regions
+            print("✅ Received \(response.regions.count) regions")
         } catch {
-            self.error = error.localizedDescription
+            print("❌ Error fetching regions: \(error)")
+            // Don't set error for regions as it's not critical
         }
-        
-        isLoading = false
     }
     
     // MARK: - Helpers
@@ -156,9 +154,9 @@ class ProductService: ObservableObject {
 
 struct ProductsResponse: Codable {
     let products: [Product]
-    let count: Int
-    let offset: Int
-    let limit: Int
+    let count: Int?
+    let offset: Int?
+    let limit: Int?
 }
 
 struct ProductResponse: Codable {
@@ -167,9 +165,9 @@ struct ProductResponse: Codable {
 
 struct CategoriesResponse: Codable {
     let productCategories: [ProductCategory]
-    let count: Int
-    let offset: Int
-    let limit: Int
+    let count: Int?
+    let offset: Int?
+    let limit: Int?
     
     enum CodingKeys: String, CodingKey {
         case productCategories = "product_categories"
@@ -179,7 +177,7 @@ struct CategoriesResponse: Codable {
 
 struct RegionsResponse: Codable {
     let regions: [Region]
-    let count: Int
-    let offset: Int
-    let limit: Int
+    let count: Int?
+    let offset: Int?
+    let limit: Int?
 }

@@ -88,6 +88,9 @@ class MedusaAPIService: ObservableObject {
             }
         }
         
+        print("🌐 Making request to: \(url)")
+        print("📋 Headers: \(request.allHTTPHeaderFields ?? [:])")
+        
         do {
             let (data, response) = try await session.data(for: request)
             
@@ -95,10 +98,18 @@ class MedusaAPIService: ObservableObject {
                 throw APIError.networkError(URLError(.badServerResponse))
             }
             
+            print("📊 Response status: \(httpResponse.statusCode)")
+            
             // Check for HTTP errors
             if httpResponse.statusCode >= 400 {
                 let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
+                print("❌ Server error: \(errorMessage)")
                 throw APIError.serverError(httpResponse.statusCode, errorMessage)
+            }
+            
+            // Print raw response for debugging
+            if let responseString = String(data: data, encoding: .utf8) {
+                print("📄 Raw response: \(responseString.prefix(500))...")
             }
             
             // Decode response
@@ -106,7 +117,7 @@ class MedusaAPIService: ObservableObject {
                 let decoder = JSONDecoder()
                 decoder.keyDecodingStrategy = .convertFromSnakeCase
                 
-                // Configure custom date decoding strategy
+                // Configure date decoding strategy to handle string dates
                 decoder.dateDecodingStrategy = .custom { decoder in
                     let container = try decoder.singleValueContainer()
                     let dateString = try container.decode(String.self)
@@ -176,16 +187,19 @@ class MedusaAPIService: ObservableObject {
                     throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot decode date string \(dateString)")
                 }
                 
-                return try decoder.decode(T.self, from: data)
+                let result = try decoder.decode(T.self, from: data)
+                print("✅ Successfully decoded response")
+                return result
             } catch {
-                print("Decoding error: \(error)")
-                print("Response data: \(String(data: data, encoding: .utf8) ?? "Unable to convert data to string")")
+                print("❌ Decoding error: \(error)")
+                print("📄 Response data: \(String(data: data, encoding: .utf8) ?? "Unable to convert data to string")")
                 throw APIError.decodingError(error)
             }
         } catch {
             if error is APIError {
                 throw error
             } else {
+                print("❌ Network error: \(error)")
                 throw APIError.networkError(error)
             }
         }

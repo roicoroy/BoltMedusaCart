@@ -9,11 +9,12 @@ import SwiftUI
 
 struct ProductListView: View {
     @StateObject private var productService = ProductService()
-    @StateObject private var checkoutService = CheckoutService()
+    @EnvironmentObject var checkoutService: CheckoutService
     @State private var selectedCategory: ProductCategory?
     @State private var selectedRegion: Region?
     @State private var searchText = ""
     @State private var showingFilters = false
+    @State private var showingError = false
     
     var filteredProducts: [Product] {
         if searchText.isEmpty {
@@ -97,6 +98,29 @@ struct ProductListView: View {
                             .foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if productService.error != nil {
+                    VStack(spacing: 16) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.system(size: 48))
+                            .foregroundStyle(.orange)
+                        
+                        Text("Unable to load products")
+                            .font(.title2)
+                            .fontWeight(.medium)
+                        
+                        Text(productService.error ?? "Unknown error")
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                        
+                        Button("Try Again") {
+                            Task {
+                                await loadInitialData()
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if filteredProducts.isEmpty {
                     VStack(spacing: 16) {
                         Image(systemName: "bag")
@@ -145,22 +169,24 @@ struct ProductListView: View {
                 await loadInitialData()
             }
         }
-        .environmentObject(checkoutService)
     }
     
     private func loadInitialData() async {
-        async let productsTask = productService.fetchProducts()
-        async let categoriesTask = productService.fetchCategories()
-        async let regionsTask = productService.fetchRegions()
+        print("🚀 Loading initial data...")
         
-        await productsTask
-        await categoriesTask
-        await regionsTask
+        // Load data sequentially to avoid overwhelming the API
+        await productService.fetchRegions()
         
         // Set default region if available
         if selectedRegion == nil, let firstRegion = productService.regions.first {
             selectedRegion = firstRegion
+            print("🌍 Selected default region: \(firstRegion.name)")
         }
+        
+        await productService.fetchProducts(regionId: selectedRegion?.id)
+        await productService.fetchCategories()
+        
+        print("📊 Loaded \(productService.products.count) products")
     }
 }
 
@@ -231,6 +257,10 @@ struct ProductCard: View {
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .foregroundStyle(.blue)
+                } else {
+                    Text("Price unavailable")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
         }
@@ -273,4 +303,5 @@ struct CartButton: View {
 
 #Preview {
     ProductListView()
+        .environmentObject(CheckoutService())
 }
