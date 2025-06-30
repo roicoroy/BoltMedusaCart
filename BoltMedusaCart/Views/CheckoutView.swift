@@ -525,8 +525,9 @@ struct OrderCompleteView: View {
     var body: some View {
         VStack(spacing: 24) {
             Image(systemName: "checkmark.circle.fill")
+                .imageScale(.large)
                 .font(.system(size: 80))
-                .foregroundColor(.green)
+                .foregroundStyle(Color.green)
             
             VStack(spacing: 8) {
                 Text("Order Complete!")
