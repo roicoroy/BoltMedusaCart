@@ -48,7 +48,7 @@ struct ContentView: View {
             Text("Select an item")
         }
         .sheet(isPresented: $showingCheckout) {
-            CheckoutView()
+//            CheckoutView()
         }
     }
 
