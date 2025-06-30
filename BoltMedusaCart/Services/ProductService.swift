@@ -101,15 +101,54 @@ class ProductService: ObservableObject {
     
     func fetchCategories() async {
         do {
-            let response: CategoriesResponse = try await apiService.request(
-                endpoint: "/store/product-categories",
-                method: .GET
-            )
+            print("🔍 Fetching categories from: /store/product-categories")
             
-            categories = response.productCategories
+            // Try the standard response format first
+            do {
+                let response: CategoriesResponse = try await apiService.request(
+                    endpoint: "/store/product-categories",
+                    method: .GET
+                )
+                
+                categories = response.productCategories
+                print("✅ Received \(response.productCategories.count) categories")
+                return
+            } catch {
+                print("⚠️ Standard format failed, trying alternative format...")
+            }
+            
+            // Try alternative response format (direct array)
+            do {
+                let directCategories: [ProductCategory] = try await apiService.request(
+                    endpoint: "/store/product-categories",
+                    method: .GET
+                )
+                
+                categories = directCategories
+                print("✅ Received \(directCategories.count) categories (direct array)")
+                return
+            } catch {
+                print("⚠️ Direct array format failed, trying nested format...")
+            }
+            
+            // Try nested format with different key
+            do {
+                let response: AlternativeCategoriesResponse = try await apiService.request(
+                    endpoint: "/store/product-categories",
+                    method: .GET
+                )
+                
+                categories = response.categories
+                print("✅ Received \(response.categories.count) categories (alternative format)")
+                return
+            } catch {
+                print("❌ All category formats failed")
+                throw error
+            }
+            
         } catch {
             print("❌ Error fetching categories: \(error)")
-            // Don't set error for categories as it's not critical
+            // Don't set error for categories as it's not critical for the main functionality
         }
     }
     
@@ -163,6 +202,7 @@ struct ProductResponse: Codable {
     let product: Product
 }
 
+// Primary categories response format
 struct CategoriesResponse: Codable {
     let productCategories: [ProductCategory]
     let count: Int?
@@ -173,6 +213,14 @@ struct CategoriesResponse: Codable {
         case productCategories = "product_categories"
         case count, offset, limit
     }
+}
+
+// Alternative categories response format
+struct AlternativeCategoriesResponse: Codable {
+    let categories: [ProductCategory]
+    let count: Int?
+    let offset: Int?
+    let limit: Int?
 }
 
 struct RegionsResponse: Codable {

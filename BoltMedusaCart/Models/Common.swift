@@ -103,10 +103,10 @@ struct Region: Codable, Identifiable {
     let name: String
     let currencyCode: String
     let currency: Currency?
-    let taxRate: Double
+    let taxRate: Double?
     let taxCode: String?
-    let giftCardsTaxable: Bool
-    let automaticTaxes: Bool
+    let giftCardsTaxable: Bool?
+    let automaticTaxes: Bool?
     let countries: [Country]?
     let taxProviders: [TaxProvider]?
     let paymentProviders: [PaymentProvider]?
@@ -150,22 +150,29 @@ struct Currency: Codable {
 
 // MARK: - Country Model
 struct Country: Codable, Identifiable {
-    let id: Int
+    let id: Int?
     let iso2: String
     let iso3: String
-    let numCode: Int
+    let numCode: String
     let name: String
     let displayName: String
     let regionId: String?
     let region: Region?
+    let metadata: [String: AnyCodable]?
+    let createdAt: String?
+    let updatedAt: String?
+    let deletedAt: String?
     
     enum CodingKeys: String, CodingKey {
-        case id, name, region
+        case id, name, region, metadata
         case iso2 = "iso_2"
         case iso3 = "iso_3"
         case numCode = "num_code"
         case displayName = "display_name"
         case regionId = "region_id"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+        case deletedAt = "deleted_at"
     }
 }
 
@@ -288,7 +295,7 @@ struct MoneyAmount: Codable, Identifiable {
 struct ProductVariant: Codable, Identifiable {
     let id: String
     let title: String
-    let productId: String
+    let productId: String?
     let product: Product?
     let prices: [MoneyAmount]?
     let sku: String?
@@ -391,13 +398,14 @@ struct Product: Codable, Identifiable {
 struct ProductImage: Codable, Identifiable {  // Renamed from Image to ProductImage
     let id: String
     let url: String
-    let createdAt: String
-    let updatedAt: String
+    let rank: Int?
+    let createdAt: String?
+    let updatedAt: String?
     let deletedAt: String?
     let metadata: [String: AnyCodable]?
     
     enum CodingKeys: String, CodingKey {
-        case id, url, metadata
+        case id, url, rank, metadata
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case deletedAt = "deleted_at"
@@ -408,9 +416,9 @@ struct ProductOption: Codable, Identifiable {
     let id: String
     let title: String
     let values: [ProductOptionValue]?
-    let productId: String
-    let createdAt: String
-    let updatedAt: String
+    let productId: String?
+    let createdAt: String?
+    let updatedAt: String?
     let deletedAt: String?
     let metadata: [String: AnyCodable]?
     
@@ -426,12 +434,12 @@ struct ProductOption: Codable, Identifiable {
 struct ProductOptionValue: Codable, Identifiable {
     let id: String
     let value: String
-    let optionId: String
+    let optionId: String?
     let option: ProductOption?
-    let variantId: String
+    let variantId: String?
     let variant: ProductVariant?
-    let createdAt: String
-    let updatedAt: String
+    let createdAt: String?
+    let updatedAt: String?
     let deletedAt: String?
     let metadata: [String: AnyCodable]?
     
@@ -449,11 +457,13 @@ struct ProductOptionValue: Codable, Identifiable {
 struct ProductCategory: Codable, Identifiable {
     let id: String
     let name: String
-    let handle: String
+    let handle: String?
+    let description: String?
     let parentCategoryId: String?
     let rank: Int?
-    let createdAt: String
-    let updatedAt: String
+    let createdAt: String?
+    let updatedAt: String?
+    let deletedAt: String?
     let metadata: [String: AnyCodable]?
     
     // Note: Removed recursive references to avoid circular dependency
@@ -461,10 +471,11 @@ struct ProductCategory: Codable, Identifiable {
     // by fetching related categories separately when needed
     
     enum CodingKeys: String, CodingKey {
-        case id, name, handle, rank, metadata
+        case id, name, handle, description, rank, metadata
         case parentCategoryId = "parent_category_id"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+        case deletedAt = "deleted_at"
     }
 }
 
@@ -472,40 +483,46 @@ struct ProductCategory: Codable, Identifiable {
 struct ProductCategoryWithParent: Codable, Identifiable {
     let id: String
     let name: String
-    let handle: String
+    let handle: String?
+    let description: String?
     let parentCategoryId: String?
     let parentCategory: ProductCategory?
     let rank: Int?
-    let createdAt: String
-    let updatedAt: String
+    let createdAt: String?
+    let updatedAt: String?
+    let deletedAt: String?
     let metadata: [String: AnyCodable]?
     
     enum CodingKeys: String, CodingKey {
-        case id, name, handle, rank, metadata
+        case id, name, handle, description, rank, metadata
         case parentCategoryId = "parent_category_id"
         case parentCategory = "parent_category"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+        case deletedAt = "deleted_at"
     }
 }
 
 struct ProductCategoryWithChildren: Codable, Identifiable {
     let id: String
     let name: String
-    let handle: String
+    let handle: String?
+    let description: String?
     let parentCategoryId: String?
     let categoryChildren: [ProductCategory]?
     let rank: Int?
-    let createdAt: String
-    let updatedAt: String
+    let createdAt: String?
+    let updatedAt: String?
+    let deletedAt: String?
     let metadata: [String: AnyCodable]?
     
     enum CodingKeys: String, CodingKey {
-        case id, name, handle, rank, metadata
+        case id, name, handle, description, rank, metadata
         case parentCategoryId = "parent_category_id"
         case categoryChildren = "category_children"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+        case deletedAt = "deleted_at"
     }
 }
 
@@ -513,8 +530,8 @@ struct ProductCollection: Codable, Identifiable {
     let id: String
     let title: String
     let handle: String?
-    let createdAt: String
-    let updatedAt: String
+    let createdAt: String?
+    let updatedAt: String?
     let deletedAt: String?
     let metadata: [String: AnyCodable]?
     
@@ -529,8 +546,8 @@ struct ProductCollection: Codable, Identifiable {
 struct ProductType: Codable, Identifiable {
     let id: String
     let value: String
-    let createdAt: String
-    let updatedAt: String
+    let createdAt: String?
+    let updatedAt: String?
     let deletedAt: String?
     let metadata: [String: AnyCodable]?
     
@@ -545,8 +562,8 @@ struct ProductType: Codable, Identifiable {
 struct ProductTag: Codable, Identifiable {
     let id: String
     let value: String
-    let createdAt: String
-    let updatedAt: String
+    let createdAt: String?
+    let updatedAt: String?
     let deletedAt: String?
     let metadata: [String: AnyCodable]?
     
@@ -564,8 +581,8 @@ struct ShippingProfile: Codable, Identifiable {
     let type: String
     let products: [Product]?
     let shippingOptions: [ShippingOption]?
-    let createdAt: String
-    let updatedAt: String
+    let createdAt: String?
+    let updatedAt: String?
     let deletedAt: String?
     let metadata: [String: AnyCodable]?
     
@@ -606,5 +623,51 @@ struct FulfillmentProvider: Codable, Identifiable {
     enum CodingKeys: String, CodingKey {
         case id
         case isInstalled = "is_installed"
+    }
+}
+
+// MARK: - Shipping Option Model
+struct ShippingOption: Codable, Identifiable {
+    let id: String
+    let name: String
+    let regionId: String?
+    let profileId: String?
+    let providerId: String?
+    let priceType: String?
+    let amount: Int?
+    let isReturn: Bool?
+    let adminOnly: Bool?
+    let requirements: [ShippingOptionRequirement]?
+    let data: [String: AnyCodable]?
+    let createdAt: String?
+    let updatedAt: String?
+    let deletedAt: String?
+    let metadata: [String: AnyCodable]?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, name, amount, requirements, data, metadata
+        case regionId = "region_id"
+        case profileId = "profile_id"
+        case providerId = "provider_id"
+        case priceType = "price_type"
+        case isReturn = "is_return"
+        case adminOnly = "admin_only"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+        case deletedAt = "deleted_at"
+    }
+}
+
+struct ShippingOptionRequirement: Codable, Identifiable {
+    let id: String
+    let shippingOptionId: String?
+    let type: String
+    let amount: Int
+    let deletedAt: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, type, amount
+        case shippingOptionId = "shipping_option_id"
+        case deletedAt = "deleted_at"
     }
 }
