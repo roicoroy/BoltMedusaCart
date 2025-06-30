@@ -76,13 +76,13 @@ struct CheckoutProgressView: View {
                         .overlay(
                             Text("\(index + 1)")
                                 .font(.caption.bold())
-                                .foregroundColor(stepTextColor(for: step))
+                                .foregroundStyle(stepTextColor(for: step))
                         )
                     
                     // Step Title
                     Text(step.title)
                         .font(.caption)
-                        .foregroundColor(stepTextColor(for: step))
+                        .foregroundStyle(stepTextColor(for: step))
                     
                     // Connector Line
                     if index < CheckoutService.CheckoutStep.allCases.count - 1 {
@@ -135,7 +135,7 @@ struct CartStepView: View {
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
-                    .onChange(of: email) { newValue in
+                    .onChange(of: email) { _, newValue in
                         Task {
                             await checkoutService.updateCart(email: newValue)
                         }
@@ -167,7 +167,7 @@ struct CartStepView: View {
                                 Text("Discount")
                                 Spacer()
                                 Text("-\(checkoutService.formatPrice(cart.discountTotal))")
-                                    .foregroundColor(.green)
+                                    .foregroundStyle(.green)
                             }
                         }
                         
@@ -214,13 +214,13 @@ struct CartItemRow: View {
                 if let description = item.description {
                     Text(description)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
                 
                 Text(checkoutService.formatPrice(item.unitPrice))
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
             
             Spacer()
@@ -239,7 +239,7 @@ struct CartItemRow: View {
                     }
                 } label: {
                     Image(systemName: "minus.circle")
-                        .foregroundStyle(Color.red)
+                        .foregroundStyle(.red)
                 }
                 
                 Text("\(item.quantity)")
@@ -251,7 +251,7 @@ struct CartItemRow: View {
                     }
                 } label: {
                     Image(systemName: "plus.circle")
-                        .foregroundStyle(Color.blue)
+                        .foregroundStyle(.blue)
                 }
             }
         }
@@ -277,7 +277,7 @@ struct ShippingStepView: View {
                         isEditingShipping = true
                         showingAddressForm = true
                     }
-                    .foregroundColor(.blue)
+                    .foregroundStyle(.blue)
                 }
                 
                 if let address = checkoutService.currentCart?.shippingAddress {
@@ -287,7 +287,7 @@ struct ShippingStepView: View {
                         isEditingShipping = true
                         showingAddressForm = true
                     }
-                    .foregroundColor(.blue)
+                    .foregroundStyle(.blue)
                 }
             }
             .padding()
@@ -330,12 +330,12 @@ struct ShippingOptionRow: View {
                 VStack(alignment: .leading) {
                     Text(option.name)
                         .font(.subheadline)
-                        .foregroundColor(.primary)
+                        .foregroundStyle(.primary)
                     
                     if let amount = option.amount {
                         Text(checkoutService.formatPrice(amount))
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 
@@ -343,7 +343,7 @@ struct ShippingOptionRow: View {
                 
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.blue)
+                        .foregroundStyle(.blue)
                 }
             }
             .padding()
@@ -393,13 +393,13 @@ struct PaymentProviderRow: View {
         } label: {
             HStack {
                 Text(providerId.capitalized)
-                    .foregroundColor(.primary)
+                    .foregroundStyle(.primary)
                 
                 Spacer()
                 
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.blue)
+                        .foregroundStyle(.blue)
                 }
             }
             .padding()
@@ -423,7 +423,7 @@ struct ConfirmationStepView: View {
                     Text("Contact")
                         .font(.subheadline.bold())
                     Text(cart.email ?? "No email")
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
                 .padding()
                 .background(Color.gray.opacity(0.1))
@@ -463,7 +463,7 @@ struct ConfirmationStepView: View {
                         Text("Payment Method")
                             .font(.subheadline.bold())
                         Text(paymentSession.providerId.capitalized)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                     .padding()
                     .background(Color.gray.opacity(0.1))
@@ -497,7 +497,7 @@ struct ConfirmationStepView: View {
                             Text("Discount")
                             Spacer()
                             Text("-\(checkoutService.formatPrice(cart.discountTotal))")
-                                .foregroundColor(.green)
+                                .foregroundStyle(.green)
                         }
                     }
                     
@@ -524,10 +524,16 @@ struct OrderCompleteView: View {
     
     var body: some View {
         VStack(spacing: 24) {
-            Image(systemName: "checkmark.circle.fill")
-                .imageScale(.large)
-                .font(.system(size: 80))
-                .foregroundStyle(Color.green)
+            // Success Icon
+            ZStack {
+                Circle()
+                    .fill(Color.green.opacity(0.1))
+                    .frame(width: 120, height: 120)
+                
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 60))
+                    .foregroundStyle(.green)
+            }
             
             VStack(spacing: 8) {
                 Text("Order Complete!")
@@ -536,13 +542,13 @@ struct OrderCompleteView: View {
                 if let order = order {
                     Text("Order #\(order.displayId)")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
             }
             
             Text("Thank you for your purchase. You will receive a confirmation email shortly.")
                 .multilineTextAlignment(.center)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
             
             Button("Continue Shopping") {
                 // Handle navigation back to store
@@ -566,7 +572,7 @@ struct CheckoutBottomBar: View {
                     Button("Back") {
                         checkoutService.goToPreviousStep()
                     }
-                    .foregroundColor(.blue)
+                    .foregroundStyle(.blue)
                 }
                 
                 Spacer()
@@ -624,13 +630,13 @@ struct AddressDisplayView: View {
             if let address1 = address.address1 {
                 Text(address1)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
             
             if let address2 = address.address2, !address2.isEmpty {
                 Text(address2)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
             
             HStack {
@@ -645,12 +651,12 @@ struct AddressDisplayView: View {
                 }
             }
             .font(.caption)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
             
             if let countryCode = address.countryCode {
                 Text(countryCode.uppercased())
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
         }
     }
