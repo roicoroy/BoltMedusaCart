@@ -101,18 +101,13 @@ class MedusaAPIService: ObservableObject {
                 let decoder = JSONDecoder()
                 decoder.keyDecodingStrategy = .convertFromSnakeCase
                 
-                // Configure date decoding strategy
-                let formatter = DateFormatter()
-                formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'"
-                formatter.locale = Locale(identifier: "en_US_POSIX")
-                formatter.timeZone = TimeZone(secondsFromGMT: 0)
-                
+                // Configure custom date decoding strategy
                 decoder.dateDecodingStrategy = .custom { decoder in
                     let container = try decoder.singleValueContainer()
                     let dateString = try container.decode(String.self)
                     
-                    // Try different date formats
-                    let formatters = [
+                    // Try different DateFormatter configurations
+                    let dateFormatters: [DateFormatter] = [
                         // ISO 8601 with microseconds
                         {
                             let f = DateFormatter()
@@ -137,23 +132,38 @@ class MedusaAPIService: ObservableObject {
                             f.timeZone = TimeZone(secondsFromGMT: 0)
                             return f
                         }(),
-                        // ISO 8601 with timezone
+                        // ISO 8601 with timezone offset
                         {
-                            let f = ISO8601DateFormatter()
-                            f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                            let f = DateFormatter()
+                            f.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
+                            f.locale = Locale(identifier: "en_US_POSIX")
                             return f
-                        }() as DateFormatter
+                        }(),
+                        // ISO 8601 with timezone offset and milliseconds
+                        {
+                            let f = DateFormatter()
+                            f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+                            f.locale = Locale(identifier: "en_US_POSIX")
+                            return f
+                        }()
                     ]
                     
-                    for formatter in formatters {
+                    // Try each formatter
+                    for formatter in dateFormatters {
                         if let date = formatter.date(from: dateString) {
                             return date
                         }
                     }
                     
-                    // If all formatters fail, try ISO8601DateFormatter directly
+                    // If all DateFormatters fail, try ISO8601DateFormatter as a last resort
                     let iso8601Formatter = ISO8601DateFormatter()
                     iso8601Formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                    if let date = iso8601Formatter.date(from: dateString) {
+                        return date
+                    }
+                    
+                    // Try ISO8601DateFormatter without fractional seconds
+                    iso8601Formatter.formatOptions = [.withInternetDateTime]
                     if let date = iso8601Formatter.date(from: dateString) {
                         return date
                     }
