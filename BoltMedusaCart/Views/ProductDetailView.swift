@@ -253,7 +253,7 @@ struct ProductDetailView: View {
 }
 
 struct ProductImageCarousel: View {
-    let images: [Image]
+    let images: [ProductImage]  // Changed from Image to ProductImage
     @Binding var selectedIndex: Int
     
     var body: some View {

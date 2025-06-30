@@ -339,7 +339,7 @@ struct Product: Codable, Identifiable {
     let handle: String?
     let isGiftcard: Bool
     let status: String
-    let images: [Image]?
+    let images: [ProductImage]?  // Changed from Image to ProductImage
     let thumbnail: String?
     let options: [ProductOption]?
     let variants: [ProductVariant]?
@@ -388,7 +388,7 @@ struct Product: Codable, Identifiable {
 }
 
 // MARK: - Supporting Product Models
-struct Image: Codable, Identifiable {
+struct ProductImage: Codable, Identifiable {  // Renamed from Image to ProductImage
     let id: String
     let url: String
     let createdAt: String
