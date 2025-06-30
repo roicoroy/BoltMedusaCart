@@ -100,7 +100,66 @@ class MedusaAPIService: ObservableObject {
             do {
                 let decoder = JSONDecoder()
                 decoder.keyDecodingStrategy = .convertFromSnakeCase
-                decoder.dateDecodingStrategy = .iso8601
+                
+                // Configure date decoding strategy
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'"
+                formatter.locale = Locale(identifier: "en_US_POSIX")
+                formatter.timeZone = TimeZone(secondsFromGMT: 0)
+                
+                decoder.dateDecodingStrategy = .custom { decoder in
+                    let container = try decoder.singleValueContainer()
+                    let dateString = try container.decode(String.self)
+                    
+                    // Try different date formats
+                    let formatters = [
+                        // ISO 8601 with microseconds
+                        {
+                            let f = DateFormatter()
+                            f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'"
+                            f.locale = Locale(identifier: "en_US_POSIX")
+                            f.timeZone = TimeZone(secondsFromGMT: 0)
+                            return f
+                        }(),
+                        // ISO 8601 with milliseconds
+                        {
+                            let f = DateFormatter()
+                            f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+                            f.locale = Locale(identifier: "en_US_POSIX")
+                            f.timeZone = TimeZone(secondsFromGMT: 0)
+                            return f
+                        }(),
+                        // ISO 8601 standard
+                        {
+                            let f = DateFormatter()
+                            f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+                            f.locale = Locale(identifier: "en_US_POSIX")
+                            f.timeZone = TimeZone(secondsFromGMT: 0)
+                            return f
+                        }(),
+                        // ISO 8601 with timezone
+                        {
+                            let f = ISO8601DateFormatter()
+                            f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                            return f
+                        }() as DateFormatter
+                    ]
+                    
+                    for formatter in formatters {
+                        if let date = formatter.date(from: dateString) {
+                            return date
+                        }
+                    }
+                    
+                    // If all formatters fail, try ISO8601DateFormatter directly
+                    let iso8601Formatter = ISO8601DateFormatter()
+                    iso8601Formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                    if let date = iso8601Formatter.date(from: dateString) {
+                        return date
+                    }
+                    
+                    throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot decode date string \(dateString)")
+                }
                 
                 return try decoder.decode(T.self, from: data)
             } catch {
