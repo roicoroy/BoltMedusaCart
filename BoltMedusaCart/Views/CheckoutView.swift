@@ -239,7 +239,7 @@ struct CartItemRow: View {
                     }
                 } label: {
                     Image(systemName: "minus.circle")
-                        .foregroundColor(Color.red)
+                        .foregroundStyle(Color.red)
                 }
                 
                 Text("\(item.quantity)")
@@ -251,7 +251,7 @@ struct CartItemRow: View {
                     }
                 } label: {
                     Image(systemName: "plus.circle")
-                        .foregroundColor(Color.blue)
+                        .foregroundStyle(Color.blue)
                 }
             }
         }
