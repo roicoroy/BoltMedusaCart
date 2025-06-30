@@ -11,44 +11,53 @@ import SwiftData
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var items: [Item]
-    @State private var showingCheckout = false
+    @StateObject private var checkoutService = CheckoutService()
 
     var body: some View {
-        NavigationSplitView {
-            VStack {
-                List {
-                    ForEach(items) { item in
-                        NavigationLink {
-                            Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                        } label: {
-                            Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+        TabView {
+            ProductListView()
+                .tabItem {
+                    Image(systemName: "bag")
+                    Text("Products")
+                }
+                .environmentObject(checkoutService)
+            
+            CheckoutView()
+                .tabItem {
+                    Image(systemName: "cart")
+                    Text("Cart")
+                }
+                .environmentObject(checkoutService)
+            
+            NavigationView {
+                VStack {
+                    List {
+                        ForEach(items) { item in
+                            NavigationLink {
+                                Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
+                            } label: {
+                                Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+                            }
+                        }
+                        .onDelete(perform: deleteItems)
+                    }
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            EditButton()
+                        }
+                        ToolbarItem {
+                            Button(action: addItem) {
+                                Label("Add Item", systemImage: "plus")
+                            }
                         }
                     }
-                    .onDelete(perform: deleteItems)
                 }
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        EditButton()
-                    }
-                    ToolbarItem {
-                        Button(action: addItem) {
-                            Label("Add Item", systemImage: "plus")
-                        }
-                    }
-                }
-                
-                // Checkout Button
-                Button("Open Checkout") {
-                    showingCheckout = true
-                }
-                .buttonStyle(.borderedProminent)
-                .padding()
+                .navigationTitle("Demo Items")
             }
-        } detail: {
-            Text("Select an item")
-        }
-        .sheet(isPresented: $showingCheckout) {
-//            CheckoutView()
+            .tabItem {
+                Image(systemName: "list.bullet")
+                Text("Demo")
+            }
         }
     }
 
