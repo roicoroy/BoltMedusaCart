@@ -12,11 +12,13 @@ class MedusaAPIService: ObservableObject {
     static let shared = MedusaAPIService()
     
     private let baseURL: String
+    private let publishableApiKey: String
     private let session = URLSession.shared
     private var cancellables = Set<AnyCancellable>()
     
-    init(baseURL: String = "http://localhost:9000") {
+    init(baseURL: String = "http://localhost:9000", publishableApiKey: String = "pk_d62e2de8f849db562e79a89c8a08ec4f5d23f1a958a344d5f64dfc38ad39fa1a") {
         self.baseURL = baseURL
+        self.publishableApiKey = publishableApiKey
     }
     
     enum HTTPMethod: String {
@@ -66,6 +68,9 @@ class MedusaAPIService: ObservableObject {
         // Set default headers
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        
+        // Add Medusa publishable API key header
+        request.setValue(publishableApiKey, forHTTPHeaderField: "x-publishable-api-key")
         
         // Add custom headers
         for (key, value) in headers {
@@ -184,6 +189,13 @@ class MedusaAPIService: ObservableObject {
                 throw APIError.networkError(error)
             }
         }
+    }
+    
+    // MARK: - Configuration
+    
+    func updateConfiguration(baseURL: String? = nil, publishableApiKey: String? = nil) {
+        // This would require reinitializing the service or making properties mutable
+        // For now, configuration is set during initialization
     }
     
     // MARK: - Convenience Methods
