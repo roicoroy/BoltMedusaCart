@@ -6,6 +6,14 @@
 //
 
 import Foundation
+
+struct CategoriesResponse: Codable {
+    let product_categories: [ProductCategory]
+}
+
+struct AlternativeCategoriesResponse: Codable {
+    let product_categories: [ProductCategory]
+}
 import Combine
 
 @MainActor
@@ -110,8 +118,8 @@ class ProductService: ObservableObject {
                     method: .GET
                 )
                 
-                categories = response.productCategories
-                print("✅ Received \(response.productCategories.count) categories")
+                categories = response.product_categories
+                print("✅ Received \(response.product_categories.count) categories")
                 return
             } catch {
                 print("⚠️ Standard format failed, trying alternative format...")
@@ -138,8 +146,8 @@ class ProductService: ObservableObject {
                     method: .GET
                 )
                 
-                categories = response.categories
-                print("✅ Received \(response.categories.count) categories (alternative format)")
+                categories = response.product_categories
+                print("✅ Received \(response.product_categories.count) categories (alternative format)")
                 return
             } catch {
                 print("❌ All category formats failed")
@@ -189,43 +197,3 @@ class ProductService: ObservableObject {
     }
 }
 
-// MARK: - Response Models
-
-struct ProductsResponse: Codable {
-    let products: [Product]
-    let count: Int?
-    let offset: Int?
-    let limit: Int?
-}
-
-struct ProductResponse: Codable {
-    let product: Product
-}
-
-// Primary categories response format
-struct CategoriesResponse: Codable {
-    let productCategories: [ProductCategory]
-    let count: Int?
-    let offset: Int?
-    let limit: Int?
-    
-    enum CodingKeys: String, CodingKey {
-        case productCategories = "product_categories"
-        case count, offset, limit
-    }
-}
-
-// Alternative categories response format
-struct AlternativeCategoriesResponse: Codable {
-    let categories: [ProductCategory]
-    let count: Int?
-    let offset: Int?
-    let limit: Int?
-}
-
-struct RegionsResponse: Codable {
-    let regions: [Region]
-    let count: Int?
-    let offset: Int?
-    let limit: Int?
-}

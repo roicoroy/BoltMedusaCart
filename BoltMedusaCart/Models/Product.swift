@@ -201,12 +201,13 @@ struct ProductVariant: Codable, Identifiable {
     let height: Int?
     let width: Int?
     let options: [ProductOptionValue]?
+    let prices: [MoneyAmount]?
     let createdAt: String
     let updatedAt: String
     let deletedAt: String?
     
     enum CodingKeys: String, CodingKey {
-        case id, title, sku, barcode, ean, upc, material, options
+        case id, title, sku, barcode, ean, upc, material, options, prices
         case productId = "product_id"
         case allowBackorder = "allow_backorder"
         case manageInventory = "manage_inventory"
@@ -235,6 +236,7 @@ struct ProductVariant: Codable, Identifiable {
         midCode = try container.decodeIfPresent(String.self, forKey: .midCode)
         material = try container.decodeIfPresent(String.self, forKey: .material)
         options = try container.decodeIfPresent([ProductOptionValue].self, forKey: .options)
+        prices = try container.decodeIfPresent([MoneyAmount].self, forKey: .prices)
         createdAt = try container.decode(String.self, forKey: .createdAt)
         updatedAt = try container.decode(String.self, forKey: .updatedAt)
         deletedAt = try container.decodeIfPresent(String.self, forKey: .deletedAt)
@@ -306,6 +308,27 @@ struct ProductType: Codable, Identifiable {
     
     enum CodingKeys: String, CodingKey {
         case id, value
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+        case deletedAt = "deleted_at"
+    }
+}
+
+struct ProductCategory: Codable, Identifiable {
+    let id: String
+    let name: String
+    let handle: String?
+    let description: String?
+    let parentCategoryId: String?
+    let rank: Int?
+    let createdAt: String?
+    let updatedAt: String?
+    let deletedAt: String?
+    let metadata: [String: AnyCodable]?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, name, handle, description, rank, metadata
+        case parentCategoryId = "parent_category_id"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case deletedAt = "deleted_at"

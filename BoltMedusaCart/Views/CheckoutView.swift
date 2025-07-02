@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CheckoutView: View {
     @EnvironmentObject var checkoutService: CheckoutService
+    @StateObject private var paymentProvidersService = PaymentProvidersService()
     @State private var showingOrderComplete = false
     @State private var completedOrder: Order?
     
@@ -33,6 +34,7 @@ struct CheckoutView: View {
                                 ShippingStepView()
                             case .payment:
                                 PaymentStepView()
+                                    .environmentObject(paymentProvidersService)
                             case .confirmation:
                                 ConfirmationStepView(cart: cart)
                             case .complete:
@@ -300,14 +302,32 @@ struct ShippingStepView: View {
 }
 
 struct PaymentStepView: View {
+    @EnvironmentObject var paymentProvidersService: PaymentProvidersService
+    @EnvironmentObject var checkoutService: CheckoutService
+
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Payment Information")
                 .font(.title2)
                 .fontWeight(.semibold)
             
-            Text("Payment options will be implemented here")
-                .foregroundStyle(.secondary)
+            if paymentProvidersService.isLoading {
+                ProgressView()
+            } else if let error = paymentProvidersService.error {
+                Text(error)
+                    .foregroundStyle(.red)
+            } else {
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(paymentProvidersService.paymentProviders) { provider in
+                        Text(provider.id)
+                    }
+                }
+            }
+        }
+        .task {
+            if let cartId = checkoutService.currentCart?.id {
+                await paymentProvidersService.retrievePaymentProviders(cartId: cartId)
+            }
         }
     }
 }

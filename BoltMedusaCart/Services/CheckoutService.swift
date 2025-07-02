@@ -15,8 +15,6 @@ class CheckoutService: ObservableObject {
     @Published var error: String?
     @Published var checkoutStep: CheckoutStep = .cart
     @Published var availableShippingOptions: [ShippingOption] = []
-    @Published var availablePaymentProviders: [String] = []
-    
     private let apiService = MedusaAPIService.shared
     private var cancellables = Set<AnyCancellable>()
     
@@ -305,27 +303,6 @@ class CheckoutService: ObservableObject {
     
     // MARK: - Payment Sessions
     
-    func initializePaymentSessions() async {
-        guard let cartId = currentCart?.id else { return }
-        
-        isLoading = true
-        error = nil
-        
-        do {
-            let response: CartResponse = try await apiService.request(
-                endpoint: "/store/carts/\(cartId)/payment-sessions",
-                method: .POST
-            )
-            
-            currentCart = response.cart
-            availablePaymentProviders = response.cart.paymentSessions.map { $0.providerId }
-        } catch {
-            self.error = error.localizedDescription
-        }
-        
-        isLoading = false
-    }
-    
     func selectPaymentSession(providerId: String) async {
         guard let cartId = currentCart?.id else { return }
         
@@ -507,7 +484,6 @@ class CheckoutService: ObservableObject {
         currentCart = nil
         checkoutStep = .cart
         availableShippingOptions = []
-        availablePaymentProviders = []
         error = nil
     }
 }
